@@ -1,4 +1,19 @@
-import {serverURL} from './server.js';
-const server=await serverURL();const select=document.getElementById('ext-server');select.value=server;select.onchange=()=>chrome.storage.local.set({serverURL:select.value});
-document.getElementById('ext-open').onclick=async()=>chrome.tabs.create({url:await serverURL()});
-document.getElementById('ext-negotiate').onclick=async()=>{const button=document.getElementById('ext-negotiate'),results=document.getElementById('ext-results');button.disabled=true;results.replaceChildren();try{const url=await serverURL();const response=await fetch(url+'/api/fairdeal/match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sku:'CH-WINTER-PARKA-01',budget:document.getElementById('ext-budget').value||'130.00',shipping_flexibility:.85,prefers_pay_later:true,willing_to_bundle:true})});const data=await response.json();if(!response.ok)throw Error(data.error?.message||'No package available');for(const offer of data.top_offers){const box=document.createElement('div');box.className='offer-item';const text=document.createElement('p');text.textContent=offer.merchant_name+' · $'+offer.final_price+(offer.concessions.bundle?' + '+offer.concessions.bundle.name:'');const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener';open.textContent='Review and calculate a fresh offer on FairDeal';box.append(text,open);results.append(box);}}catch(error){results.textContent=error.message;}finally{button.disabled=false;}};
+import { serverURL } from './server.js';
+const select = document.getElementById('ext-server'); select.value = await serverURL();
+select.onchange = () => chrome.storage.local.set({ serverURL: select.value });
+const toggle = document.getElementById('ext-photo-button');
+const settings = await chrome.storage.local.get('showProductButton'); toggle.checked = settings.showProductButton !== false;
+toggle.onchange = () => chrome.storage.local.set({ showProductButton: toggle.checked });
+document.getElementById('ext-open').onclick = async () => chrome.tabs.create({ url: await serverURL() });
+const status = document.getElementById('ext-status'), button = document.getElementById('ext-find');
+const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+try {
+  const product = await chrome.tabs.sendMessage(tab.id, { type: 'FAIRDEAL_EXTRACT' });
+  if (!product?.name) throw new Error('No product');
+  status.textContent = product.name + (product.price ? ' · ' + product.price + ' ' + product.currency : ''); button.disabled = false;
+} catch { status.textContent = 'Abre o recarga una ficha de producto compatible. También puedes usar el botón sobre la foto.'; }
+button.onclick = async () => {
+  button.disabled = true;
+  try { const result = await chrome.runtime.sendMessage({ type: 'FAIRDEAL_OPEN_PRODUCT', tabId: tab.id }); if (!result?.ok) throw new Error(result?.error || 'No se pudo abrir FairDeal.'); window.close(); }
+  catch (error) { status.textContent = error.message; button.disabled = false; }
+};

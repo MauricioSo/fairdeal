@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FairDeal — AI-assisted PayPal checkout",
-  "version": "1.0.0",
-  "description": "Find a validated package from the FairDeal demo merchant using your submitted budget and delivery preferences.",
+  "name": "FairDeal — Find a deal from a product photo",
+  "version": "1.1.0",
+  "description": "Detect product pages locally and open FairDeal from a button on the product image. Comparison currently uses fictional demo parkas.",
   "permissions": [
     "storage",
     "activeTab",
@@ -19,12 +19,15 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "http://*/*",
+        "https://*/*"
       ],
       "js": [
+        "product.js",
         "content.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "background": {

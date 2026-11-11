@@ -67,6 +67,18 @@ Five logical stores sharing a Sandbox application do not constitute marketplace 
 
 [PayPal webhook verification](https://developer.paypal.com/api/webhooks/v1/verify-webhook-signature-post)
 
+## Chrome extension
+
+Load the extension directory as an unpacked Manifest V3 extension from chrome://extensions (Developer mode), then reload the product page. For updates use Reload on the extension card and refresh the shop tab. The ZIP release contains the same runtime files; unzip it before loading. Installation and permission approval remain under the user's control.
+
+Version 1.1 detects a selected product from JSON-LD, schema microdata or explicit product OpenGraph tags and places a dismissible FairDeal button at the top of its matching product photo. It handles lazy-loaded images, layout changes and SPA metadata updates. Ambiguous listings, ordinary articles, checkout/account pages and unmatched images do not get a button. Sites without supported metadata may not be detected.
+
+The popup can disable automatic photo buttons, select hosted/local FairDeal, or open the current product reference. The image/page context menu is also available. Automatic detection requires content-script access to HTTP/HTTPS pages, but detection is local: no scraping service, browsing history, automatic server requests or account access. On explicit search the extension sends only name, brand, SKU, displayed price/currency and source URL without query/fragment; the price never becomes the user's budget. No external images are loaded by the import dialog.
+
+FairDeal asks the buyer to review the reference and enter a private USD budget before comparing. The current marketplace still contains fictional parkas: no external store joins the negotiation, no exact product equivalence or external savings are claimed, and unsupported categories offer a separate, explicitly labeled parka demo. Import does not initiate payment.
+
+Run extension unit tests with Node: Get-Content extension/product.test.cjs -Raw | node - . Browser harness tests use the actual product/content scripts with simulated Chrome APIs; installation on a user's Chrome profile requires a separate manual load/approval.
+
 ## AI and privacy
 
 Configure AI_MODE=llm, LLM_BASE_URL, LLM_MODEL and LLM_API_KEY. Use a model actually available in your account. The example uses deepseek-flash. Requests are bounded and failed/unconfigured calls fall back to explicitly labeled deterministic behavior.

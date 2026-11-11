@@ -15,6 +15,18 @@ export class NegotiatorApp {
     this.initDOMElements();
     this.bindEvents();
     this.connectWebSocket();
+    const importReference = event => {
+      const request = event?.detail || window.fairdealImportedRequest;
+      if (!request?.confirmed || !Number.isFinite(request.budget) || request.budget < 1 || request.budget > 10000) return;
+      delete window.fairdealImportedRequest;
+      this.budgetSlider.max = String(Math.max(200, request.budget));
+      this.budgetSlider.step = '0.01';
+      this.budgetSlider.value = String(request.budget);
+      this.budgetValue.textContent = '$' + request.budget.toFixed(2);
+      this.runWinWinMatch();
+    };
+    window.addEventListener('fairdeal-reference-ready', importReference);
+    if (window.fairdealImportedRequest) importReference();
   }
 
   initDOMElements() {
