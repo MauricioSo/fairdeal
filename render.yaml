@@ -18,8 +18,10 @@ services:
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      - key: MERCHANT_TOKEN
-        generateValue: true
+      - key: MERCHANT_EMAIL
+        sync: false
+      - key: MERCHANT_PASSWORD_HASH
+        sync: false
       - key: DEMO_MODE
         value: "false"
       - key: AI_MODE

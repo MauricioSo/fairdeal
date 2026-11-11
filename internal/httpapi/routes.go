@@ -3,6 +3,7 @@ package httpapi
 import (
 	"io/fs"
 	"net/http"
+	"path"
 
 	"github.com/nashpay/nashpay/internal/config"
 	"github.com/nashpay/nashpay/internal/money"
@@ -133,6 +134,18 @@ func (s *Server) registerStatic() {
 	}
 	fileServer := http.FileServer(http.FS(staticContent))
 	serve := func(w http.ResponseWriter, r *http.Request) {
+		if path.Clean(r.URL.Path) == "/merchant.html" || path.Clean(r.URL.Path) == "/merchant" {
+			if s.MchtHandler == nil {
+				http.Redirect(w, r, "/merchant/login", http.StatusSeeOther)
+				return
+			}
+			s.MchtHandler.auth.Page(func(w http.ResponseWriter, r *http.Request) { fileServer.ServeHTTP(w, r) })(w, r)
+			return
+		}
+		if path.Clean(r.URL.Path) == "/login.html" {
+			authHeaders(w)
+			w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'")
+		}
 		_ = GetOrCreateSessionID(w, r)
 		fileServer.ServeHTTP(w, r)
 	}
@@ -145,6 +158,7 @@ func (s *Server) registerStatic() {
 	}
 
 	s.Mux.HandleFunc("GET /merchant", alias("/merchant.html"))
+	s.Mux.HandleFunc("GET /merchant/login", alias("/login.html"))
 	s.Mux.HandleFunc("GET /checkout/confirmed", alias("/confirmed.html"))
 	s.Mux.HandleFunc("GET /", serve)
 }

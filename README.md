@@ -48,7 +48,7 @@ Kernel market verification is unavailable until a real product source, navigatio
 
 ## Render
 
-The render.yaml Blueprint defines a persistent Go service and SQLite disk. It requires PayPal Sandbox credentials and AI credentials, generates HMAC and merchant access tokens, and disables demo reset. Enter MERCHANT_TOKEN using the seller dashboard's access button. The extension currently targets localhost; update its server URL and allowed host for a hosted demo.
+The render.yaml Blueprint defines a persistent Go service and SQLite disk. It requires PayPal Sandbox credentials and AI credentials, generates the agreement signing secret, and disables demo reset. Configure MERCHANT_EMAIL and MERCHANT_PASSWORD_HASH, then sign in at /merchant/login. The extension currently targets localhost; update its server URL and allowed host for a hosted demo.
 
 ## Architecture
 
@@ -64,3 +64,19 @@ MIT license. Built for the PayPal AI Hackathon.
 
 This repository includes the runnable application source, tests, assets and deployment configuration. Internal specifications and planning documents are omitted. Credentials must be configured separately; they are not included.
 
+
+## Merchant login
+
+The seller dashboard and all merchant APIs require a login session. The old X-Merchant-Token header is not accepted. With missing or invalid login configuration, protected APIs fail closed.
+
+Generate one merchant account locally, with the output path outside this source repository:
+
+~~~powershell
+go run ./cmd/merchant-access -email merchant@fairdeal.demo -out ../merchant-access-private.json
+~~~
+
+The output contains the generated password and its PBKDF2-HMAC-SHA256 verifier (600,000 iterations, unique random salt). Keep the file private. Configure only its email and password_hash as MERCHANT_EMAIL and MERCHANT_PASSWORD_HASH in Render. The plaintext password is never configured on the server. Updating either setting invalidates previous login sessions.
+
+Sessions use 256-bit random cookies, with only their hashes persisted in SQLite. HTTPS deployments use Secure, HttpOnly, SameSite=Strict and the __Host- cookie prefix. Sessions expire after 30 minutes idle or four hours absolute, and logout deletes the session server-side. Login and authenticated mutations require same-origin JSON requests plus CSRF verification. Persistent login limits allow at most 10 attempts per address and 30 overall per 15 minutes; verification concurrency is bounded.
+
+This prototype supports one configured merchant account. It does not provide public registration, email-based recovery or MFA. Administrators rotate the generated credentials through the protected deployment configuration.

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Merchant Login — Fairdeal</title><link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+ <header><div class="header-content"><a class="brand" href="/"><span class="brand-mark">F</span><span>Fairdeal</span></a><a href="/">Buyer experience</a></div></header>
+ <main class="container" style="max-width:480px;padding-top:4rem">
+  <section class="card" style="padding:2rem">
+   <p class="brand-badge" style="display:inline-block">MERCHANT ACCESS</p>
+   <h1 style="font-size:2rem;font-weight:400;margin:1rem 0">Welcome back.</h1>
+   <p style="color:var(--text-muted);margin-bottom:1.5rem">Sign in to manage your store, policies and captured orders.</p>
+   <form id="merchant-login" method="post" action="/api/merchant/login">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="username" required maxlength="254" style="width:100%;margin:.4rem 0 1rem;padding:.85rem;border:1px solid var(--border);border-radius:12px;background:var(--card)">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024" style="width:100%;margin:.4rem 0 1rem;padding:.85rem;border:1px solid var(--border);border-radius:12px;background:var(--card)">
+    <p id="login-error" role="alert" aria-live="polite" style="color:#a52a2a;min-height:1.5rem"></p>
+    <button id="login-submit" class="btn-primary" type="submit" style="width:100%;margin-top:.5rem;padding:.9rem" disabled>Sign in</button>
+   </form>
+   <p style="font-size:.85rem;color:var(--text-muted);margin-top:1.25rem">Private merchant access. Contact your administrator if you need help signing in.</p>
+  </section>
+ </main>
+ <script type="module" src="/js/login.js"></script>
+</body>
+</html>

@@ -15,3 +15,7 @@ docs/
 specs/
 fairdeal
 
+
+# Generated private merchant credentials
+*merchant-access*.json
+outputs/

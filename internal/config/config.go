@@ -23,7 +23,8 @@ type Config struct {
 	LLMModel              string
 	CommitCooldownSeconds int
 	DemoMode              bool
-	MerchantToken         string
+	MerchantEmail         string
+	MerchantPasswordHash  string
 	AIMode                string // "llm" or "heuristic"
 	KernelAPIURL          string
 	KernelAPIKey          string
@@ -109,7 +110,8 @@ func Load(dotEnvPath string) (*Config, error) {
 		cfg.DemoMode = demoStr == "1" || strings.ToLower(demoStr) == "true"
 	}
 
-	cfg.MerchantToken = os.Getenv("MERCHANT_TOKEN")
+	cfg.MerchantEmail = os.Getenv("MERCHANT_EMAIL")
+	cfg.MerchantPasswordHash = os.Getenv("MERCHANT_PASSWORD_HASH")
 
 	cfg.KernelAPIURL = os.Getenv("KERNEL_API_URL")
 	if cfg.KernelAPIURL == "" {

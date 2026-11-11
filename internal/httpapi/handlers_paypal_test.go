@@ -32,7 +32,8 @@ func TestPayPalOrderCreationAndCapture(t *testing.T) {
 	mockPP := paypal.NewMockClient()
 	ppHandler := NewPayPalHandler(st, mockPP, negSvc, "mock", "http://localhost:8080")
 	aiHandler := NewAIHandler(nil)
-	merchHandler := NewMerchantHandler(st, nil, true, "secret-token")
+	merchantAuth := NewMerchantAuth(st, "merchant@fairdeal.demo", testPasswordHash(t), "https://fairdeal.test")
+	merchHandler := NewMerchantHandler(st, nil, true, merchantAuth)
 	cfg := &config.Config{PayPalMode: "mock", DemoMode: true}
 	srv := NewServer(st, cfg, nil, ppHandler, aiHandler, merchHandler)
 
@@ -117,10 +118,11 @@ func TestPayPalOrderCreationAndCapture(t *testing.T) {
 	}
 
 	reqAuth := httptest.NewRequest("GET", "/api/merchant/agreements", nil)
-	reqAuth.Header.Set("X-Merchant-Token", "secret-token")
+	cookie, _ := loginMerchant(t, srv.Mux, "correct horse battery staple 123")
+	reqAuth.AddCookie(cookie)
 	recAuth := httptest.NewRecorder()
 	srv.Mux.ServeHTTP(recAuth, reqAuth)
 	if recAuth.Code != http.StatusOK {
-		t.Errorf("expected 200 with valid X-Merchant-Token, got %d", recAuth.Code)
+		t.Errorf("expected 200 with valid login session, got %d", recAuth.Code)
 	}
 }

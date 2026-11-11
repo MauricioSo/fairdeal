@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -18,30 +17,21 @@ type MerchantHandler struct {
 	store     *store.Store
 	llmClient *ai.LLMClient
 	demoMode  bool
-	token     string
+	auth      *MerchantAuth
 }
 
-// NewMerchantHandler builds the merchant API. When token is non-empty every merchant
-// endpoint requires the X-Merchant-Token header (contract §4.1, MERCHANT_TOKEN).
-func NewMerchantHandler(st *store.Store, llm *ai.LLMClient, demoMode bool, token string) *MerchantHandler {
-	return &MerchantHandler{store: st, llmClient: llm, demoMode: demoMode, token: token}
+// NewMerchantHandler requires a merchant login session for every merchant endpoint.
+func NewMerchantHandler(st *store.Store, llm *ai.LLMClient, demoMode bool, auth *MerchantAuth) *MerchantHandler {
+	return &MerchantHandler{store: st, llmClient: llm, demoMode: demoMode, auth: auth}
 }
 
 // guard rejects the request unless the merchant token matches (constant-time compare).
 func (h *MerchantHandler) guard(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if h.token != "" {
-			got := r.Header.Get("X-Merchant-Token")
-			if subtle.ConstantTimeCompare([]byte(got), []byte(h.token)) != 1 {
-				writeJSONError(w, http.StatusUnauthorized, "BAD_TOKEN", "merchant token required")
-				return
-			}
-		}
-		next(w, r)
-	}
+	return h.auth.Guard(next)
 }
 
 func (h *MerchantHandler) Register(mux *http.ServeMux) {
+	h.auth.Register(mux)
 	mux.HandleFunc("GET /api/merchant/policy", h.guard(h.handleGetPolicy))
 	mux.HandleFunc("POST /api/merchant/policy/compile", h.guard(h.handleCompilePolicy))
 	mux.HandleFunc("POST /api/merchant/policy/{id}/activate", h.guard(h.handleActivatePolicy))

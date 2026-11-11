@@ -1,3 +1,18 @@
+CREATE TABLE IF NOT EXISTS merchant_sessions (
+  session_hash TEXT PRIMARY KEY,
+  csrf_token TEXT NOT NULL,
+  credential_version TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  idle_expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS merchant_sessions_expiry ON merchant_sessions(expires_at);
+CREATE TABLE IF NOT EXISTS merchant_login_attempts (
+  bucket TEXT PRIMARY KEY,
+  window_start INTEGER NOT NULL,
+  attempts INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS products (
   sku TEXT PRIMARY KEY,
   name TEXT NOT NULL,

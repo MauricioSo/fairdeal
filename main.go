@@ -111,7 +111,8 @@ func main() {
 	aiHandler := httpapi.NewAIHandler(llmClient)
 
 	// Merchant Handler
-	mchtHandler := httpapi.NewMerchantHandler(st, llmClient, cfg.DemoMode, cfg.MerchantToken)
+	merchantAuth := httpapi.NewMerchantAuth(st, cfg.MerchantEmail, cfg.MerchantPasswordHash, baseURL)
+	mchtHandler := httpapi.NewMerchantHandler(st, llmClient, cfg.DemoMode, merchantAuth)
 
 	// HTTP API Server
 	apiServer := httpapi.NewServer(st, cfg, wsHandler, ppHandler, aiHandler, mchtHandler)

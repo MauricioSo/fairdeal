@@ -1,11 +1,27 @@
 import { showToast } from './api.js';
 
-let merchantToken = sessionStorage.getItem('fairdeal-merchant-token') || '';
+function escapeHtml(value) { const element = document.createElement('span'); element.textContent = String(value); return element.innerHTML; }
+let csrfToken = '';
+sessionStorage.removeItem('fairdeal-merchant-token');
+const merchantReady = fetch('/api/merchant/session', { credentials: 'same-origin', cache: 'no-store' })
+  .then(async response => {
+    if (!response.ok) { window.location.replace('/merchant/login'); throw new Error('Sign in to continue'); }
+    const session = await response.json();
+    csrfToken = session.csrf_token;
+    const label = document.getElementById('merchant-email');
+    if (label) label.textContent = session.email;
+  });
 async function merchantFetch(url, options = {}) {
- const request = () => fetch(url, { ...options, headers: { ...options.headers, 'X-Merchant-Token': merchantToken } });
- return request();
+  await merchantReady;
+  const headers = new Headers(options.headers || {});
+  if (options.method && options.method !== 'GET') {
+    headers.set('Content-Type', 'application/json');
+    headers.set('X-CSRF-Token', csrfToken);
+  }
+  const response = await fetch(url, { ...options, credentials: 'same-origin', cache: 'no-store', headers });
+  if (response.status === 401) { window.location.replace('/merchant/login'); throw new Error('Session expired'); }
+  return response;
 }
-
 
 class MerchantDashboard {
   constructor() {
@@ -15,16 +31,16 @@ class MerchantDashboard {
 
     this.initDOMElements();
     this.bindEvents();
-    const authButton = document.getElementById('merchant-auth');
-    if (authButton) authButton.addEventListener('click', () => {
-      const token = prompt('Merchant access token');
-      if (token === null) return;
-      merchantToken = token.trim();
-      sessionStorage.setItem('fairdeal-merchant-token', merchantToken);
-      this.loadAll();
+    const logout = document.getElementById('merchant-logout');
+    if (logout) logout.addEventListener('click', async () => {
+      try {
+        const response = await merchantFetch('/api/merchant/logout', { method: 'POST' });
+        if (!response.ok) throw new Error('Could not sign out. Please retry.');
+        csrfToken = '';
+        window.location.replace('/merchant/login');
+      } catch (error) { showToast(error.message); }
     });
-    this.loadAll();
-    this.startPolling();
+    merchantReady.then(() => { this.loadAll(); this.startPolling(); }).catch(error => showToast(error.message));
   }
 
   initDOMElements() {
@@ -95,9 +111,9 @@ class MerchantDashboard {
       const m = await res.json();
 
       this.metricRescued.textContent = m.rescued_carts;
-      this.metricGMV.textContent = `${m.recovered_gmv}`;
+      this.metricGMV.textContent = `$${m.recovered_gmv}`;
       const comparison = document.getElementById('compare-winwin-gmv');
-      if (comparison) comparison.textContent = `${m.recovered_gmv} captured`;
+      if (comparison) comparison.textContent = `$${m.recovered_gmv} captured`;
       this.metricPayLater.textContent = `${Math.round(m.pay_later_share * 100)}%`;
       this.metricMargin.textContent = `${(m.avg_contribution_margin_pct * 100).toFixed(1)}%`;
       this.metricDeadstock.textContent = m.deadstock_units_cleared;
@@ -129,7 +145,7 @@ class MerchantDashboard {
       <span>Max Discount: <strong>${(p.max_discount_pct * 100).toFixed(0)}%</strong></span> &bull;
       <span>Buyer Power (&alpha;): <strong>${p.buyer_power.toFixed(2)}</strong></span> &bull;
       <span>Pay Later: <strong>${p.pay_later_enabled ? 'Enabled' : 'Disabled'}</strong></span> &bull;
-      <span>Bundle SKU: <strong>${p.bundle_sku || 'None'}</strong></span>
+      <span>Bundle SKU: <strong>${escapeHtml(p.bundle_sku || 'None')}</strong></span>
     `;
   }
 
@@ -190,8 +206,8 @@ class MerchantDashboard {
 
       tr.innerHTML = `
         <td style="font-weight:600;color:var(--heading);">${f.label}</td>
-        <td>${curVal !== null ? f.fmt(curVal) : '—'}</td>
-        <td style="${changed ? 'color:var(--accent);font-weight:700;' : ''}">${f.fmt(draftVal)}</td>
+        <td>${escapeHtml(curVal !== null ? f.fmt(curVal) : '—')}</td>
+        <td style="${changed ? 'color:var(--accent);font-weight:700;' : ''}">${escapeHtml(f.fmt(draftVal))}</td>
       `;
       this.diffTableBody.appendChild(tr);
     }
@@ -201,7 +217,7 @@ class MerchantDashboard {
     if (adjustments && adjustments.length > 0) {
       for (const adj of adjustments) {
         const li = document.createElement('li');
-        li.innerHTML = `🛡️ <strong>Guardrail:</strong> ${adj}`;
+        li.textContent = 'Guardrail: ' + adj;
         this.adjustmentsList.appendChild(li);
       }
     } else {
@@ -262,15 +278,15 @@ class MerchantDashboard {
 
       tr.innerHTML = `
         <td style="font-family:var(--font-mono);font-size:0.8rem;">${timeStr}</td>
-        <td><strong>${a.sku}</strong></td>
+        <td><strong>${escapeHtml(a.sku)}</strong></td>
         <td style="font-weight:700;color:var(--heading);">$${(a.price_cents / 100).toFixed(2)}</td>
         <td style="font-size:0.82rem;">
           ${a.shipping_tier === 'CONSOLIDATED_GROUND' ? 'Ground' : 'Express'} &bull;
           ${a.pay_later ? 'Pay in 4' : 'Card'} &bull;
           ${a.bundle_sku ? 'Bundle' : 'Single'}
         </td>
-        <td><span style="color:${statusColor};font-weight:700;font-size:0.8rem;">${a.status}</span></td>
-        <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">${a.paypal_order_id || '—'}</td>
+        <td><span style="color:${statusColor};font-weight:700;font-size:0.8rem;">${escapeHtml(a.status)}</span></td>
+        <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">${escapeHtml(a.paypal_order_id || '—')}</td>
       `;
       this.agreementsTableBody.appendChild(tr);
     }
