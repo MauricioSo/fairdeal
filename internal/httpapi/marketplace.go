@@ -150,6 +150,11 @@ func (m *Marketplace) Close() {
 func (m *Marketplace) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	p := r.URL.Path
+	if r.Method == http.MethodPost {
+		controller := http.NewResponseController(w)
+		_ = controller.SetReadDeadline(time.Now().Add(10 * time.Second))
+		defer controller.SetReadDeadline(time.Time{})
+	}
 	if p == "/api/buyer/summary" && r.Method == "GET" {
 		m.buyerSummary(w, r)
 		return
@@ -298,11 +303,18 @@ func (m *Marketplace) match(w http.ResponseWriter, r *http.Request) {
 			candidates := []WinWinMatchRequest{req}
 			source := "deterministic"
 			rounds := 0
+			var previous *ai.SellerProposal
 			for round := 1; round <= 2; round++ {
 				if ctx.Err() != nil {
 					break
 				}
-				proposal := m.proposeSeller(ctx, t.server.AIHandler.llmClient, ai.SellerRequest{Merchant: t.definition.Name, Product: "Winter parka, demo canonical variant", AcceptsAccessory: req.WillingToBundle, ExploresPayLater: req.PrefersPayLater, ShippingFlexibility: req.ShippingFlexibility, Policy: policy.Policy, Round: round})
+				change := "Propose your initial permitted package"
+				if previous != nil {
+					change = "Compare the alternative accessory configuration while keeping buyer permissions and your policy"
+				}
+				proposal := m.proposeSeller(ctx, t.server.AIHandler.llmClient, ai.SellerRequest{Merchant: t.definition.Name, Product: "Winter parka, demo canonical variant", AcceptsAccessory: req.WillingToBundle, ExploresPayLater: req.PrefersPayLater, ShippingFlexibility: req.ShippingFlexibility, Policy: policy.Policy, Round: round, Previous: previous, RequestedChange: change})
+				previousCopy := proposal
+				previous = &previousCopy
 				candidate := req
 				candidate.WillingToBundle = proposal.IncludeAccessory
 				candidate.PrefersPayLater = proposal.ExplorePayLater

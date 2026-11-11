@@ -436,7 +436,7 @@ export class NegotiatorApp {
       div.dataset.offerId = offer.offer_id;
 
       const giftLine = offer.concessions.bundle
-        ? `<div style="font-size:0.78rem;color:var(--heading);font-weight:500;display:flex;align-items:center;gap:0.35rem;"><span class="ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13"/><path d="M3 12h18"/></svg></span><span>+ Free ${offer.concessions.bundle.name} ($${offer.concessions.bundle.retail_value} value)</span></div>`
+        ? `<div style="font-size:0.78rem;color:var(--heading);font-weight:500;display:flex;align-items:center;gap:0.35rem;"><span class="ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13"/><path d="M3 12h18"/></svg></span><span>+ Free ${escapeHtml(offer.concessions.bundle.name)} ($${escapeHtml(offer.concessions.bundle.retail_value)} value)</span></div>`
         : `<div style="font-size:0.78rem;color:var(--text-muted);font-weight:300;">Single Item (No extra pack)</div>`;
 
       const payLine = offer.concessions.installments
@@ -444,28 +444,28 @@ export class NegotiatorApp {
         : `Single payment`;
 
       const matchTag = offer.matched_interest
-        ? `<span style="font-size:0.68rem;background:var(--bg-subtle);color:var(--heading);padding:0.15rem 0.5rem;border-radius:var(--radius-pill);font-weight:500;">Matched: "${offer.matched_interest}"</span>`
+        ? `<span style="font-size:0.68rem;background:var(--bg-subtle);color:var(--heading);padding:0.15rem 0.5rem;border-radius:var(--radius-pill);font-weight:500;">Matched: "${escapeHtml(offer.matched_interest)}"</span>`
         : '';
 
       div.innerHTML = `
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:0.35rem;margin-bottom:0.35rem;">
-            <span class="offer-badge">${offer.badge}</span>
+            <span class="offer-badge">${escapeHtml(offer.badge)}</span>
             <span style="font-size:0.72rem;font-weight:500;color:var(--text-muted);font-family:var(--font-mono);">Validated Match</span>
           </div>
-          <div style="font-size:0.86rem;font-weight:500;color:var(--heading);">${offer.merchant_name}</div>
+          <div style="font-size:0.86rem;font-weight:500;color:var(--heading);">${escapeHtml(offer.merchant_name)}</div>
           <div style="display:flex;align-items:baseline;gap:0.5rem;margin:0.25rem 0;">
-            <span style="font-size:1.4rem;font-weight:300;font-family:var(--font-mono);color:var(--heading);">$${offer.final_price}</span>
+            <span style="font-size:1.4rem;font-weight:300;font-family:var(--font-mono);color:var(--heading);">$${escapeHtml(offer.final_price)}</span>
             <span style="font-size:0.74rem;color:var(--text-muted);font-weight:300;">${payLine}</span>
           </div>
           ${giftLine}
           <div style="font-size:0.74rem;color:var(--text-muted);margin-top:0.25rem;display:flex;align-items:center;gap:0.35rem;">
             <span class="ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
-            <span>${offer.concessions.shipping_tier === 'CONSOLIDATED_GROUND' ? 'Consolidated Ground' : 'Express Air'} (${offer.concessions.shipping_days}d) &bull; Free</span>
+            <span>${offer.concessions.shipping_tier === 'CONSOLIDATED_GROUND' ? 'Consolidated Ground' : 'Express Air'} (${escapeHtml(offer.concessions.shipping_days)}d) &bull; Free</span>
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:0.45rem;margin-top:0.3rem;">
-          <span style="font-size:0.74rem;font-weight:500;color:var(--heading);">$${offer.savings_vs_standard} Catalog savings</span>
+          <span style="font-size:0.74rem;font-weight:500;color:var(--heading);">$${escapeHtml(offer.savings_vs_standard)} Catalog savings</span>
           ${matchTag}
         </div>
       `;
