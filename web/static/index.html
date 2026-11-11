@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fairdeal — AI-assisted commerce</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="brand">
+        <span class="brand-mark">F</span>
+        <span>Fairdeal</span>
+        <span class="brand-badge">Bilateral AI Commerce</span>
+      </a>
+      <div class="header-nav">
+        <div id="user-pill" class="user-pill-fairdeal">
+          <span class="ico">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <span>Demo shopper</span>
+          <span class="dot-fairdeal"></span>
+          <span><span id="buyer-total-benefit-pill">$178</span> Saved</span>
+        </div>
+        <a href="/merchant">
+          <span>Seller Console</span>
+          <span class="ico">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Progressive 3-Stage Stepper Bar -->
+    <nav class="stepper-bar" aria-label="Fairdeal Protocol Steps">
+      <button type="button" class="step-pill active" id="step-btn-1" data-step="1">
+        <span class="step-num" id="step-num-1">1</span>
+        <div class="step-info">
+          <span class="step-label">1. Search &amp; Mandate</span>
+          <span class="step-sub" id="step-1-summary">Describe what you need</span>
+        </div>
+      </button>
+      <div class="step-connector"></div>
+      <button type="button" class="step-pill" id="step-btn-2" data-step="2">
+        <span class="step-num" id="step-num-2">2</span>
+        <div class="step-info">
+          <span class="step-label">2. Customize Levers</span>
+          <span class="step-sub" id="step-2-summary">Budget: $105 &bull; Flex: 85%</span>
+        </div>
+      </button>
+      <div class="step-connector"></div>
+      <button type="button" class="step-pill" id="step-btn-3" data-step="3">
+        <span class="step-num" id="step-num-3">3</span>
+        <div class="step-info">
+          <span class="step-label">3. Select Offer &amp; Pay</span>
+          <span class="step-sub" id="step-3-summary">Your Validated Offer</span>
+        </div>
+      </button>
+    </nav>
+
+    <!-- STAGE 1: Conversational Product Search & Mandate (Focused Centered Card) -->
+    <div id="stage-1-container" class="stage-panel" style="max-width:800px;margin:0.5rem auto 1.5rem auto;">
+      <section class="card" style="display:flex;flex-direction:column;gap:1.2rem;padding:2rem;">
+        <div class="panel-title" style="margin-bottom:0.25rem;">
+          <div>
+            <h2 style="font-size:1.35rem;font-weight:400;color:var(--heading);margin:0 0 0.35rem 0;">
+              What product are you shopping for?
+            </h2>
+            <p style="font-size:0.86rem;color:var(--text-muted);font-weight:300;margin:0;">
+              Describe your desired item, budget, and delivery timing. The AI assistant matches the demo catalog product and proposes deal preferences for you to review.
+            </p>
+          </div>
+          <span class="llm-badge" id="ai-chip">AI parser · source shown after request</span>
+        </div>
+
+        <div>
+          <label for="ai-prompt-input" style="font-size:0.82rem;font-weight:500;color:var(--heading);display:block;margin-bottom:0.45rem;">
+            Your Product Specs &amp; Negotiation Mandate:
+          </label>
+          <textarea
+            id="ai-prompt-input"
+            class="ai-textarea"
+            style="min-height:105px;font-size:0.92rem;width:100%;line-height:1.45;"
+            placeholder="e.g. I'm looking for a weatherproof insulated parka for snow and mountain photography. My budget is around $105, I'm not in a rush if I save on freight, and I'd love a cashmere scarf or thermal ski gloves with PayPal Pay in 4."
+          ></textarea>
+          <div style="display:flex;align-items:center;gap:0.45rem;margin-top:0.45rem;font-size:0.75rem;color:var(--text-muted);">
+            <span class="ico">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <span><strong>Your data:</strong> We do not collect browsing history. Submitted preferences are processed by our server; natural-language requests use the configured AI provider.</span>
+          </div>
+        </div>
+
+        <!-- Quick prompt inspiration pills -->
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-muted);font-weight:500;margin-bottom:0.5rem;">
+            Or click a sample scenario to test:
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <button type="button" class="prompt-pill" data-prompt="I want a weatherproof insulated parka for snow and mountain photography, max budget $105, flexible ground shipping to save on freight, and a cashmere scarf bonus with PayPal Pay in 4.">
+              <span class="ico">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+              </span>
+              <span>Snow &amp; Photo Parka ($105 + Scarf)</span>
+            </button>
+            <button type="button" class="prompt-pill" data-prompt="I need an extreme-weather winter parka with urgent 1-2 day express delivery for this weekend, budget up to $125, and a cashmere scarf if available.">
+              <span class="ico">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </span>
+              <span>Urgent Express Parka ($125 + Scarf)</span>
+            </button>
+            <button type="button" class="prompt-pill" data-prompt="I'm looking for the lowest possible cash price on a winter parka with no hurry on shipping, budget around $90.">
+              <span class="ico">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m20.59 13.41-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </span>
+              <span>Max Bargain Ground Hunter ($90)</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-top:0.75rem;border-top:1px solid var(--border);">
+          <button type="button" id="btn-skip-to-levers" class="btn-back-step">
+            <span>Manual Controls</span>
+            <span class="ico">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </span>
+          </button>
+          <button type="button" id="btn-ai-parse" class="btn-commit" style="flex:1;justify-content:center;padding:0.85rem 1.5rem;font-size:0.92rem;">
+            <span>Find Product &amp; Build Levers</span>
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- STAGE 2 WORKSPACE (Discovered Product Left + Custom Levers Right) -->
+    <div class="main-grid stage-panel" id="grid-stage-2" style="display:none;align-items:start;">
+      <!-- Left Column: Discovered Product & Standard Baseline -->
+      <section class="card" id="product-card-section" aria-labelledby="product-heading">
+        <div class="product-image-container">
+          <img src="/img/parka.jpg" alt="Winter Parka Performance 01" id="prod-img">
+        </div>
+
+        <div class="product-meta-row">
+          <span class="product-eyebrow">Alpine Technical Series &bull; SKU CH-WINTER-PARKA-01</span>
+          <span class="product-stock-pill">
+            <span class="dot"></span>
+            <span>One demo merchant · seeded catalog</span>
+          </span>
+        </div>
+        <h2 class="product-title" id="prod-title">Winter Parka Performance 01</h2>
+        <p class="product-desc" id="prod-desc">
+          Engineered extreme-weather technical parka. Windproof 3-layer membrane with 800-fill hydrophobic goose down insulation.
+        </p>
+
+        <!-- Dynamic Product Features generated by AI -->
+        <div class="product-features-list" id="product-features-list">
+          <span class="product-feature-tag">800-fill hydrophobic down</span>
+          <span class="product-feature-tag">3-layer weatherproof membrane</span>
+          <span class="product-feature-tag">Sub-zero thermal draft collar</span>
+        </div>
+
+        <div class="price-breakdown" style="margin-top:1.25rem;">
+          <div class="price-row">
+            <span>Rigid Retail Price</span>
+            <span id="price-list">$120.00</span>
+          </div>
+          <div class="price-row">
+            <span>Standard Express Delivery (24-48h)</span>
+            <span id="price-shipping">$15.00</span>
+          </div>
+          <div class="price-row total">
+            <span>Standard Checkout Total</span>
+            <span id="price-total">$135.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Interactive Negotiation Levers -->
+      <section class="card negotiator-panel" id="negotiator-card" aria-labelledby="negotiation-heading">
+        <div class="panel-title">
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <button type="button" id="btn-back-to-1" class="btn-back-step" title="Back to Step 1">
+              <span class="ico">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+              </span>
+              <span>Edit Search</span>
+            </button>
+            <div>
+              <h3 style="font-size:1.05rem;margin:0;">Step 2: Customize Your Deal Levers</h3>
+              <p style="font-size:0.76rem;color:var(--text-muted);font-weight:300;margin:0;">
+                Fine-tune your budget, delivery timing, or bonus item preferences before querying sellers.
+              </p>
+            </div>
+          </div>
+          <span class="brand-badge">
+            <span class="ico">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+            </span>
+            <span>Bilateral Balance</span>
+          </span>
+        </div>
+
+        <!-- Agent Advice Box (Shows after AI parsing) -->
+        <div id="agent-advice-box" class="agent-advice-box" style="display:none;margin-bottom:0.25rem;">
+          <span class="ico" style="color:var(--heading);margin-top:0.1rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </span>
+          <div>
+            <strong id="agent-advice-title" style="font-weight:500;">Buyer Agent Strategy:</strong>
+            <div id="agent-advice-text" style="margin-top:0.15rem;font-weight:300;"></div>
+          </div>
+        </div>
+
+        <!-- 1. Fair Trade Bundles & Signals -->
+        <div class="privacy-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.8rem;font-weight:500;color:var(--heading);">
+              Acceptable Fair Trade Bundles &amp; Overstock Gifts:
+            </span>
+            <span style="font-size:0.68rem;color:var(--text-muted);font-family:var(--font-mono);">LOCAL SELECTION</span>
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-muted);font-weight:300;margin-top:0.2rem;">
+            Click to select bonus accessories you are willing to receive as part of a win-win package:
+          </p>
+          <div class="interest-chips" id="interest-chips">
+            <span class="interest-chip active" data-interest="scarf">
+              <span class="ico">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13"/><path d="M3 12h18"/></svg>
+              </span>
+              <span>Cashmere Winter Scarf ($25 value)</span>
+            </span>
+
+
+
+          </div>
+        </div>
+
+        <!-- 2. Buyer Constraints Controls -->
+        <div class="control-group">
+          <div class="control-item">
+            <div class="control-header">
+              <label for="budget-slider">Target Maximum Budget</label>
+              <span id="budget-val" class="control-value">$105.00</span>
+            </div>
+            <input type="range" id="budget-slider" min="1" max="200" step="1" value="105">
+            <div class="slider-extremes">
+              <span>$1.00</span>
+              <span>$200.00</span>
+            </div>
+          </div>
+
+          <div class="control-item">
+            <div class="control-header">
+              <label for="flex-slider">Delivery Flexibility (Unlocks Freight Savings)</label>
+              <span id="flex-val" class="control-value">85%</span>
+            </div>
+            <input type="range" id="flex-slider" min="0" max="1" step="0.05" value="0.85">
+            <div class="slider-extremes">
+              <span>Need Express (1-2d)</span>
+              <span>Flexible Ground (5-7d)</span>
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-label-wrap">
+              <span class="toggle-title">PayPal Pay in 4</span>
+              <span class="toggle-subtitle">Request Pay Later; subject to PayPal eligibility</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="bnpl-toggle" checked>
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Primary Request Button -->
+        <div style="margin-top:0.5rem;">
+          <button id="btn-commit" class="btn-commit" style="width:100%;justify-content:center;padding:0.9rem;font-size:0.95rem;">
+            <span class="ico">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </span>
+            <span>Calculate My Offer</span>
+            <span class="ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- STAGE 3 WORKSPACE: Side-by-Side Curated Offers (Left) + PayPal Checkout (Right) -->
+    <div class="main-grid stage-panel" id="grid-stage-3" style="display:none;align-items:start;">
+      <!-- Left Column: Live Dialogue + Top 4 Curated Fairdeal Deals -->
+      <section class="card" style="display:flex;flex-direction:column;gap:0.9rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <button type="button" id="btn-back-to-2" class="btn-back-step">
+              <span class="ico">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+              </span>
+              <span>Adjust Levers</span>
+            </button>
+            <div>
+              <h3 style="color:var(--heading);font-size:1.05rem;margin:0;">
+                Your Fairdeal Offer
+              </h3>
+              <p id="offers-subtitle" style="font-size:0.76rem;color:var(--text-muted);font-weight:300;margin:0;">
+                Calculated from your submitted constraints and the demo merchant policy.
+              </p>
+            </div>
+          </div>
+          <button id="btn-toggle-all-offers" class="btn-ai-parse" style="margin:0;">
+            <span>View calculated package</span>
+            <span class="ico">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- How Your Offer Was Calculated Terminal (Collapsed by default) -->
+        <div id="negotiation-terminal" class="negotiation-terminal" style="display:none;margin-bottom:0;">
+          <div class="terminal-header">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span class="live-dot"></span>
+              <strong style="font-weight:500;">How Your Offer Was Calculated</strong>
+              <span class="llm-badge" id="terminal-model-badge">deepseek-flash</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span style="font-size:0.72rem;color:var(--text-muted);font-family:var(--font-mono);" id="terminal-status">
+                3 Turns Ranked
+              </span>
+              <button type="button" id="btn-toggle-dialogue" class="btn-back-step" style="padding:0.2rem 0.55rem;font-size:0.7rem;">
+                View Decision Trace
+              </button>
+            </div>
+          </div>
+          <div class="terminal-body" id="terminal-dialogue-body" style="display:none;"></div>
+          <div class="terminal-footer" id="terminal-footer" style="display:none;"></div>
+        </div>
+
+        <!-- Offers Grid Section -->
+        <div id="winwin-offers-section" style="display:flex;flex-direction:column;gap:0.85rem;">
+          <div id="kernel-audit-badge" style="display:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-pill);padding:0.35rem 0.85rem;font-size:0.74rem;color:var(--heading);align-items:center;justify-content:space-between;gap:0.5rem;">
+            <span style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="live-dot" style="width:6px;height:6px;"></span>
+              <span id="kernel-audit-text">Market prices have not been verified</span>
+            </span>
+            <span id="kernel-audit-latency" style="font-family:var(--font-mono);color:var(--text-muted);font-size:0.7rem;">Not verified</span>
+          </div>
+          <div id="top-offers-grid" class="offers-grid"></div>
+
+          <div id="all-offers-container" style="display:none;flex-direction:column;gap:0.65rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+            <div style="font-size:0.82rem;font-weight:500;color:var(--heading);">
+              All Available Seller Combinations (Transparent Market Options):
+            </div>
+            <div id="all-offers-grid" class="offers-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Selected Fairdeal Agreement Checkout Card (Sticky Side-by-Side) -->
+      <section style="position:sticky;top:4.5rem;">
+        <div class="agreement-card" id="agreement-card" style="display:flex;margin-top:0;">
+          <!-- Mini Product Context Header -->
+          <div class="mini-product-summary">
+            <img src="/img/parka.jpg" alt="Winter Parka Performance 01">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.82rem;font-weight:500;color:#ffffff;">Winter Parka Performance 01</div>
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);">
+                Standard Rigid Checkout: <span style="text-decoration:line-through;">$135.00</span> &bull; SKU CH-WINTER-PARKA-01
+              </div>
+            </div>
+          </div>
+
+          <div class="agreement-header">
+            <div>
+              <div id="selected-merchant-label" style="font-size:0.74rem;color:var(--accent);font-family:var(--font-mono);font-weight:500;letter-spacing:0.06em;">
+                FAIRDEAL AGREEMENT READY &bull; ALPINE GEAR CO.
+              </div>
+              <div id="deal-price-big" class="deal-price-big">$94.00</div>
+            </div>
+            <div id="countdown-badge" class="countdown-badge">
+              Offer expires in 05:00
+            </div>
+          </div>
+
+          <div id="paylater-callout" class="paylater-callout">
+            Pay Later availability and terms are determined by PayPal.
+          </div>
+
+          <div>
+            <div style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.7);margin-bottom:0.45rem;text-transform:uppercase;letter-spacing:0.05em;">
+              Included in your Fairdeal Package:
+            </div>
+            <ul class="concessions-list" id="concessions-list"></ul>
+          </div>
+
+          <div id="savings-tag" class="savings-tag"></div>
+
+          <!-- PayPal Checkout Mount -->
+          <div id="paypal-button-container"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    Fairdeal &bull; AI-assisted negotiation · Demo merchant · PayPal checkout &bull; Powered by PayPal
+  </footer>
+
+  <script type="module">
+    import { NegotiatorApp } from '/js/negotiate.js';
+    import { fetchProduct, fetchBuyerSummary } from '/js/api.js';
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const prod = await fetchProduct('CH-WINTER-PARKA-01');
+        document.getElementById('price-list').textContent = `$${prod.list_price}`;
+        document.getElementById('price-shipping').textContent = `$${prod.standard_shipping}`;
+        document.getElementById('price-total').textContent = `$${prod.standard_total}`;
+      } catch (err) {
+        console.warn('Using fallback UI prices', err);
+      }
+
+      try {
+        const sum = await fetchBuyerSummary();
+        const pill = document.getElementById('buyer-total-benefit-pill');
+        if (pill) pill.textContent = `$${sum.total_benefit}`;
+      } catch (err) {
+        console.warn('Buyer summary fallback', err);
+      }
+
+      new NegotiatorApp();
+    });
+  </script>
+</body>
+</html>

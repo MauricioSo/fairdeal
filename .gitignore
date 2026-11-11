@@ -1,0 +1,17 @@
+.env
+*.db
+*.db-wal
+*.db-shm
+*.exe
+nashpay
+nashpay.exe
+/tmp/
+.DS_Store
+
+# Local configuration and internal planning documents
+.env.*
+!.env.example
+docs/
+specs/
+fairdeal
+

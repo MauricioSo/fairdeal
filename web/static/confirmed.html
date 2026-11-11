@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Confirmed — Fairdeal</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    .confirmed-card {
+      max-width: 540px;
+      margin: 3rem auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .check-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--island-bg);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .receipt-box {
+      width: 100%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .receipt-row.total {
+      border-top: 1px solid var(--border);
+      padding-top: 0.6rem;
+      margin-top: 0.6rem;
+      font-weight: 500;
+      color: var(--heading);
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="brand">
+        <span class="brand-mark">F</span>
+        <span>Fairdeal</span>
+        <span class="brand-badge">Settled</span>
+      </a>
+      <div class="header-nav">
+        <a href="/merchant">Seller Console</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card confirmed-card">
+      <div class="check-circle" id="status-icon">✓</div>
+      <h2 id="confirmed-title" style="color:var(--heading);margin:0;font-weight:400;">Checking Payment</h2>
+      <p id="confirmed-subtitle" style="color:var(--text-muted);font-size:0.92rem;font-weight:300;margin:0;">
+        Verifying payment status with the server.
+      </p>
+
+      <div class="receipt-box">
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">PayPal Order ID</span>
+          <span id="receipt-order-id" style="font-family:var(--font-mono);">-</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">Capture ID</span>
+          <span id="receipt-capture-id" style="font-family:var(--font-mono);">-</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">Agreement ID</span>
+          <span id="receipt-agr-id" style="font-family:var(--font-mono);">-</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">Payment Method</span>
+          <span id="receipt-method" style="color:var(--heading);font-weight:500;">PayPal Pay in 4 (BNPL)</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">Shipping</span>
+          <span id="receipt-shipping" style="color:var(--heading);font-weight:500;">Consolidated Ground (Free)</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-muted);">Bonus Gift</span>
+          <span id="receipt-gift" style="color:var(--heading);font-weight:500;">Cashmere Scarf Included</span>
+        </div>
+        <div class="receipt-row total">
+          <span>Amount Settled</span>
+          <span id="receipt-amount" style="font-family:var(--font-mono);color:var(--heading);">$— USD</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:1rem;width:100%;">
+        <a href="/" style="flex:1;text-decoration:none;background:var(--card);color:var(--heading);border:1px solid var(--border);padding:0.75rem;border-radius:var(--radius-pill);font-weight:500;text-align:center;">
+          ← Back to Store
+        </a>
+        <a href="/merchant" style="flex:1;text-decoration:none;background:var(--island-bg);color:var(--island-text);padding:0.75rem;border-radius:var(--radius-pill);font-weight:500;text-align:center;">
+          Seller Console →
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Fairdeal &bull; AI-assisted commerce &bull; Powered by PayPal
+  </footer>
+
+  <script>
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const agreementId = params.get('agreement') || params.get('agreementId');
+      if (!agreementId) {
+        document.getElementById('confirmed-title').textContent = 'No Agreement Specified';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/agreements/${encodeURIComponent(agreementId)}/public`);
+        if (!res.ok) throw new Error('Agreement not found');
+        const data = await res.json();
+
+        if (data.status !== 'CAPTURED') {
+          document.getElementById('confirmed-title').textContent = 'Payment Not Captured';
+          document.getElementById('confirmed-subtitle').textContent = 'This agreement has no completed payment.';
+          document.getElementById('status-icon').textContent = '…';
+          return;
+        }
+        const configRes = await fetch('/api/config');
+        if (!configRes.ok) throw new Error('Payment configuration unavailable');
+        const config = await configRes.json();
+        document.getElementById('confirmed-title').textContent = config.paypal_mode === 'mock' ? 'Simulated Payment Completed' : 'Sandbox Payment Captured';
+        document.getElementById('confirmed-subtitle').textContent = 'Demo transaction. No live funds were transferred. Receipt reflects the stored agreement.';
+        document.getElementById('receipt-agr-id').textContent = data.agreement_id;
+        document.getElementById('receipt-order-id').textContent = data.paypal_order_id || '—';
+        document.getElementById('receipt-capture-id').textContent = data.capture_id || '—';
+        document.getElementById('receipt-amount').textContent = `$${data.final_price} ${data.currency || 'USD'}`;
+
+        if (data.concessions) {
+          const isPayLater = data.concessions.payment_method === 'PAY_LATER';
+          document.getElementById('receipt-method').textContent = isPayLater ? 'PayPal (Pay Later requested)' : 'PayPal Standard';
+          document.getElementById('receipt-shipping').textContent =
+            data.concessions.shipping_tier === 'CONSOLIDATED_GROUND'
+              ? `Consolidated Ground (${data.concessions.shipping_days}d, Free)`
+              : `Express Shipping (${data.concessions.shipping_days}d, Free)`;
+          document.getElementById('receipt-gift').textContent =
+            data.concessions.bundle ? `${data.concessions.bundle.name} Included` : 'None';
+        }
+      } catch (err) {
+        document.getElementById('confirmed-subtitle').textContent = 'Could not verify receipt from server.';
+      }
+    })();
+  </script>
+</body>
+</html>

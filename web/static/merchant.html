@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fairdeal Seller Console — Transparent Bilateral Commerce</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .metric-title {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metric-value {
+      font-size: 1.7rem;
+      font-weight: 300;
+      color: var(--heading);
+      font-family: var(--font-mono);
+    }
+    .metric-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.86rem;
+    }
+    .audit-table th, .audit-table td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+    }
+    .audit-table th {
+      background: var(--bg-subtle);
+      color: var(--heading);
+      font-weight: 500;
+    }
+    .audit-table tr:nth-child(even) {
+      background: var(--bg-subtle);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="brand">
+        <span class="brand-mark">F</span>
+        <span>Fairdeal</span>
+        <span class="brand-badge">Seller Console</span>
+      </a>
+      <div class="header-nav" style="display:flex;align-items:center;gap:0.75rem;">
+        <span class="user-pill-fairdeal" style="font-size:0.78rem;">
+          <span class="dot-fairdeal"></span>
+          <span>Alpine Gear Co. (Seller)</span>
+        </span>
+        <button id="btn-reset-demo" class="btn-back-step" style="cursor:pointer;">
+          ↺ Reset Demo Data
+        </button>
+        <a href="/">← Buyer View</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <button id="merchant-auth" type="button" class="btn-secondary">Enter merchant access token</button>
+    <p>Demo inventory and configured costs. Metrics reflect stored captures, including simulations in mock mode. Conversion lift has not been measured.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:1.5rem 0 1rem;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <h1 style="font-size:1.6rem;font-weight:400;color:var(--heading);margin:0;">Seller Console &bull; Fairdeal Demo Merchant</h1>
+        <p style="color:var(--text-muted);font-size:0.86rem;font-weight:300;margin:0;">
+          Transparent bilateral clearing: "I choose, you choose" saves sales lost to rigid or surge pricing.
+        </p>
+      </div>
+      <span class="brand-badge">
+        Demo catalog · market prices unverified
+      </span>
+    </div>
+
+    <!-- Comparison Banner: Selling with Fairdeal Protocol vs. Selling Alone -->
+    <div class="card" style="margin-bottom:1.5rem;background:var(--island-bg);color:var(--island-text);border:1px solid rgba(255,255,255,0.08);border-radius:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;">
+      <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling Alone (Rigid Checkout)</div>
+        <div style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:#f87171;margin-top:0.2rem;">Baseline not measured</div>
+        <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Demo catalog checkout: $135.00; not an observed abandonment rate</div>
+      </div>
+      <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling with Fairdeal Protocol</div>
+        <div id="compare-winwin-gmv" style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:var(--accent);margin-top:0.2rem;">$0.00 captured</div>
+        <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Captured orders below the seeded catalog checkout total</div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Net Conversion Lift</div>
+        <div style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:#38bdf8;margin-top:0.2rem;">No measured lift</div>
+        <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Margin checks use configured demo costs and policy</div>
+      </div>
+    </div>
+
+    <!-- 1. Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-title">Captures below catalog checkout</span>
+        <span class="metric-value" id="metric-rescued" style="color:var(--green);">0</span>
+        <span class="metric-sub">Budget below list total</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-title">Captured value below catalog checkout</span>
+        <span class="metric-value" id="metric-gmv" style="color:var(--heading);">$0.00</span>
+        <span class="metric-sub">Sales salvaged by Fairdeal</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-title">PayPal Pay in 4</span>
+        <span class="metric-value" id="metric-paylater">0%</span>
+        <span class="metric-sub">Share of cleared orders</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-title">Avg Contribution</span>
+        <span class="metric-value" id="metric-margin">0.0%</span>
+        <span class="metric-sub">Net merchant margin retained</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-title">Deadstock Units</span>
+        <span class="metric-value" id="metric-deadstock" style="color:var(--purple);">0</span>
+        <span class="metric-sub">Scarves cleared from storage</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-title">Solver Latency P50</span>
+        <span class="metric-value" id="metric-latency">0.00 ms</span>
+        <span class="metric-sub">Combinatorial clearing time</span>
+      </div>
+    </div>
+
+    <!-- Active Policy Banner -->
+    <div class="card" style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;padding:0.9rem 1.25rem;">
+      <div id="active-policy-summary" style="display:flex;align-items:center;gap:0.75rem;font-size:0.86rem;color:var(--text);flex-wrap:wrap;">
+        <span>Loading active policy...</span>
+      </div>
+    </div>
+
+    <!-- 2. AI Policy Compiler Section -->
+    <section class="card" style="margin-bottom:2rem;">
+      <div style="border-bottom:1px solid var(--border);padding-bottom:0.75rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2 style="font-size:1.25rem;color:var(--heading);margin:0;">AI Strategy Compiler</h2>
+          <p style="font-size:0.84rem;color:var(--text-muted);margin:0;">
+            Direct the clearing engine using natural language business goals. Go guardrails guarantee financial safety.
+          </p>
+        </div>
+        <span class="brand-badge" style="background:rgba(188,140,255,0.15);color:var(--purple);border-color:rgba(188,140,255,0.3);">
+          Guardrails Active
+        </span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <textarea
+          id="policy-prompt"
+          class="ai-textarea"
+          style="min-height:75px;"
+          placeholder="e.g. Liquidate the cashmere scarf stock aggressively this week. Keep at least 18% margin, discount up to 28% if buyer uses Pay in 4, allow slow shipping."
+        ></textarea>
+        <button id="btn-compile-policy" class="btn-ai-parse" style="align-self:flex-start;padding:0.6rem 1.25rem;font-size:0.9rem;">
+          ✨ Compile Policy with AI
+        </button>
+      </div>
+
+      <!-- Diff Container (Appears when compiled) -->
+      <div id="policy-diff-container" style="display:none;margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+        <h3 style="font-size:1.05rem;color:var(--heading);margin-bottom:0.75rem;">
+          Proposed Policy Diff vs. Active
+        </h3>
+
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Commercial Parameter</th>
+              <th>Current Active</th>
+              <th>Proposed by AI</th>
+            </tr>
+          </thead>
+          <tbody id="diff-table-body"></tbody>
+        </table>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:10px;padding:1rem;margin:1rem 0;">
+          <div style="font-size:0.8rem;font-weight:700;color:var(--heading);margin-bottom:0.4rem;text-transform:uppercase;">
+            Automated Risk &amp; Safety Checks (Go Guardrails):
+          </div>
+          <ul id="adjustments-list" style="list-style:none;font-size:0.85rem;color:var(--text);display:flex;flex-direction:column;gap:0.3rem;"></ul>
+          <div style="margin-top:0.75rem;font-size:0.82rem;color:var(--text-muted);">
+            <em>Rationale:</em> <span id="policy-rationale"></span>
+          </div>
+        </div>
+
+        <button id="btn-activate-policy" class="btn-commit">
+          Activate Policy for New Negotiations
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Recent Negotiations Audit Log -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+        <div>
+          <h2 style="font-size:1.25rem;color:var(--heading);margin:0;">Live Clearing Audit Trail</h2>
+          <p style="font-size:0.84rem;color:var(--text-muted);margin:0;">
+            Immutable log of negotiated contracts, clearing tokens, and PayPal Order capture IDs.
+          </p>
+        </div>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Auto-refreshing every 5s</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Product</th>
+              <th>Cleared Price</th>
+              <th>Concessions</th>
+              <th>Status</th>
+              <th>PayPal Order</th>
+            </tr>
+          </thead>
+          <tbody id="agreements-table-body">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading audit trail...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Fairdeal &bull; AI-assisted commerce demo &bull; PayPal AI Hackathon 2026
+  </footer>
+
+  <script type="module" src="/js/merchant.js"></script>
+</body>
+</html>

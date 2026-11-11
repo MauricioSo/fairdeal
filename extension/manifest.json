@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Fairdeal — AI-assisted PayPal checkout",
+  "version": "1.0.0",
+  "description": "Find a validated package from the Fairdeal demo merchant using your submitted budget and delivery preferences.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://localhost:8080/*",
+    "https://*.onrender.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fairdeal Buyer Agent"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

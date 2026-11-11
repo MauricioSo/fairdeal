@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: fairdeal-protocol
+    runtime: go
+    plan: 0.5c-512mb
+    region: oregon
+    buildCommand: go build -p 1 -tags netgo -ldflags="-s -w" -o fairdeal .
+    startCommand: ./fairdeal
+    healthCheckPath: /api/config
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_PATH
+        value: /var/data/fairdeal.db
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: MERCHANT_TOKEN
+        generateValue: true
+      - key: DEMO_MODE
+        value: "false"
+      - key: AI_MODE
+        value: llm
+      - key: LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: LLM_MODEL
+        value: deepseek-flash
+      - key: LLM_API_KEY
+        sync: false
+      - key: KERNEL_API_URL
+        value: https://api.onkernel.com
+      - key: NASHPAY_HMAC_SECRET
+        generateValue: true
+      - key: GOTOOLCHAIN
+        value: auto
+    disk:
+      name: fairdeal-sqlite-data
+      mountPath: /var/data
+      sizeGB: 1

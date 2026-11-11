@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="scarfBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="cashmereGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="16" fill="url(#scarfBg)"/>
+  
+  <!-- Scarf Fold Loops -->
+  <path d="M120 120 C120 80 280 80 280 120 C280 150 250 160 200 160 C150 160 120 150 120 120 Z" fill="url(#cashmereGrad)" stroke="#a78bfa" stroke-width="2"/>
+  
+  <!-- Left Tail -->
+  <path d="M140 145 C135 200 130 280 125 320 L170 320 C175 280 180 200 185 155 Z" fill="url(#cashmereGrad)" stroke="#a78bfa" stroke-width="2"/>
+  
+  <!-- Right Tail (Crossed over) -->
+  <path d="M190 150 C200 210 215 270 225 310 L270 305 C255 260 235 200 220 145 Z" fill="#6d28d9" stroke="#8b5cf6" stroke-width="2"/>
+  
+  <!-- Fringes / Tassels -->
+  <g stroke="#ddd6fe" stroke-width="2" stroke-linecap="round">
+    <line x1="130" y1="320" x2="130" y2="340"/>
+    <line x1="140" y1="320" x2="140" y2="340"/>
+    <line x1="150" y1="320" x2="150" y2="340"/>
+    <line x1="160" y1="320" x2="160" y2="340"/>
+    
+    <line x1="230" y1="310" x2="232" y2="330"/>
+    <line x1="240" y1="308" x2="242" y2="328"/>
+    <line x1="250" y1="307" x2="252" y2="327"/>
+    <line x1="260" y1="305" x2="262" y2="325"/>
+  </g>
+  
+  <!-- Bonus Gift Tag -->
+  <rect x="24" y="24" width="105" height="24" rx="12" fill="rgba(63, 185, 80, 0.15)" stroke="rgba(63, 185, 80, 0.35)" stroke-width="1"/>
+  <text x="76" y="40" fill="#3fb950" font-family="-apple-system, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">NASH BUNDLE GIFT</text>
+  
+  <text x="200" y="380" fill="#8b949e" font-family="-apple-system, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="middle">Deadstock Cashmere Scarf</text>
+</svg>
