@@ -64,6 +64,10 @@ func Open(ctx context.Context, dbPath string) (*Store, error) {
 		}
 	}
 
+	if err := backupBeforeEconomics(ctx, db, dbPath); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("economic migration backup: %w", err)
+	}
 	// Apply schema
 	if _, err := db.ExecContext(ctx, schemaSQL); err != nil {
 		_ = db.Close()
@@ -78,6 +82,10 @@ func Open(ctx context.Context, dbPath string) (*Store, error) {
 		return nil, fmt.Errorf("seed initial data: %w", err)
 	}
 
+	if err := s.migrateEconomics(ctx); err != nil {
+		db.Close()
+		return nil, err
+	}
 	return s, nil
 }
 

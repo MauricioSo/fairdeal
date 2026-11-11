@@ -2,6 +2,7 @@ package clearing
 
 import (
 	"errors"
+	"github.com/nashpay/nashpay/internal/economics"
 
 	"github.com/nashpay/nashpay/internal/money"
 )
@@ -37,6 +38,7 @@ type Market struct {
 }
 
 type Policy struct {
+	Economics         economics.Config
 	MinMarginPct      float64
 	MaxDiscountPct    float64
 	BuyerPower        float64

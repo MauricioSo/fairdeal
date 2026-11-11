@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -16,30 +17,31 @@ const (
 )
 
 type AgreementRecord struct {
-	DeliveryCountry    string  `json:"delivery_country,omitempty"`
-	ID                 string  `json:"id"`
-	NegotiationID      string  `json:"negotiation_id"`
-	SessionID          string  `json:"session_id"`
-	SKU                string  `json:"sku"`
-	BundleSKU          *string `json:"bundle_sku"`
-	PriceCents         int64   `json:"price_cents"`
-	ShippingTier       string  `json:"shipping_tier"`
-	PayLater           bool    `json:"pay_later"`
-	BuyerBudgetCents   int64   `json:"-"`
-	StandardTotalCents int64   `json:"standard_total_cents"`
-	FeeCents           int64   `json:"fee_cents"`
-	ContributionCents  int64   `json:"contribution_cents"`
-	BuyerSurplusCents  int64   `json:"-"`
-	SellerSurplusCents int64   `json:"seller_surplus_cents"`
-	PolicyID           int64   `json:"policy_id"`
-	Status             string  `json:"status"`
-	StatusReason       *string `json:"status_reason"`
-	PayPalOrderID      *string `json:"paypal_order_id"`
-	CaptureID          *string `json:"capture_id"`
-	SolverLatencyUs    int64   `json:"solver_latency_us"`
-	CreatedAt          int64   `json:"created_at"`
-	ExpiresAt          int64   `json:"expires_at"`
-	UpdatedAt          int64   `json:"updated_at"`
+	Economics          *EconomicSnapshot `json:"-"`
+	DeliveryCountry    string            `json:"delivery_country,omitempty"`
+	ID                 string            `json:"id"`
+	NegotiationID      string            `json:"negotiation_id"`
+	SessionID          string            `json:"session_id"`
+	SKU                string            `json:"sku"`
+	BundleSKU          *string           `json:"bundle_sku"`
+	PriceCents         int64             `json:"price_cents"`
+	ShippingTier       string            `json:"shipping_tier"`
+	PayLater           bool              `json:"pay_later"`
+	BuyerBudgetCents   int64             `json:"-"`
+	StandardTotalCents int64             `json:"standard_total_cents"`
+	FeeCents           int64             `json:"fee_cents"`
+	ContributionCents  int64             `json:"contribution_cents"`
+	BuyerSurplusCents  int64             `json:"-"`
+	SellerSurplusCents int64             `json:"seller_surplus_cents"`
+	PolicyID           int64             `json:"policy_id"`
+	Status             string            `json:"status"`
+	StatusReason       *string           `json:"status_reason"`
+	PayPalOrderID      *string           `json:"paypal_order_id"`
+	CaptureID          *string           `json:"capture_id"`
+	SolverLatencyUs    int64             `json:"solver_latency_us"`
+	CreatedAt          int64             `json:"created_at"`
+	ExpiresAt          int64             `json:"expires_at"`
+	UpdatedAt          int64             `json:"updated_at"`
 }
 
 // IsValidTransition checks if moving from 'from' to 'to' is permitted.
@@ -110,6 +112,22 @@ func (s *Store) CreateAgreement(ctx context.Context, a *AgreementRecord) error {
 	)
 	if err != nil {
 		return fmt.Errorf("create agreement: %w", err)
+	}
+	if a.Economics != nil {
+		revision, e := economicRevision(ctx, tx)
+		if e != nil {
+			return e
+		}
+		if revision != a.Economics.Revision {
+			return ErrEconomicChange
+		}
+		data, e := json.Marshal(a.Economics)
+		if e != nil {
+			return e
+		}
+		if _, e = tx.ExecContext(ctx, "INSERT INTO agreement_economics(agreement_id,snapshot_json)VALUES(?,?)", a.ID, string(data)); e != nil {
+			return e
+		}
 	}
 	if _, err = tx.ExecContext(ctx, "INSERT INTO agreement_delivery(agreement_id,country)VALUES(?,?)", a.ID, a.DeliveryCountry); err != nil {
 		return err

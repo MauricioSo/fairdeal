@@ -70,9 +70,9 @@ func (s *Store) GetMetrics(ctx context.Context) (*MetricsResult, error) {
 			return nil, err
 		}
 
-		// Average contribution margin % = AVG(contribution_cents * 1.0 / price_cents)
+		// New agreements use net revenue after included tax. Legacy captures keep their original gross basis.
 		var avgMargin sql.NullFloat64
-		if err := s.db.QueryRowContext(ctx, "SELECT AVG(CAST(contribution_cents AS REAL) / CAST(price_cents AS REAL)) FROM agreements WHERE status = 'CAPTURED' AND price_cents > 0").Scan(&avgMargin); err != nil {
+		if err := s.db.QueryRowContext(ctx, "SELECT AVG(CAST(a.contribution_cents AS REAL) / COALESCE(NULLIF(json_extract(e.snapshot_json,'$.evaluation.breakdown.net_revenue_cents'),0),a.price_cents)) FROM agreements a LEFT JOIN agreement_economics e ON e.agreement_id=a.id WHERE a.status = 'CAPTURED' AND a.price_cents > 0").Scan(&avgMargin); err != nil {
 			return nil, err
 		}
 		if avgMargin.Valid {
@@ -166,6 +166,9 @@ func (s *Store) ResetDemoData(ctx context.Context) error {
 		return err
 	}
 	if _, err = tx.ExecContext(ctx, "DELETE FROM merchant_events"); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "DELETE FROM agreement_economics"); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM agreements"); err != nil {

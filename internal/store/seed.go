@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nashpay/nashpay/internal/economics"
 )
 
 type Product struct {
@@ -34,13 +35,14 @@ type MarketSettings struct {
 }
 
 type PolicyConfig struct {
-	MinMarginPct      float64 `json:"min_margin_pct"`
-	MaxDiscountPct    float64 `json:"max_discount_pct"`
-	BuyerPower        float64 `json:"buyer_power"`
-	AllowSlowShipping bool    `json:"allow_slow_shipping"`
-	PayLaterEnabled   bool    `json:"pay_later_enabled"`
-	BundleSKU         *string `json:"bundle_sku"`
-	Rationale         string  `json:"rationale"`
+	Economics         economics.Config `json:"economics"`
+	MinMarginPct      float64          `json:"min_margin_pct"`
+	MaxDiscountPct    float64          `json:"max_discount_pct"`
+	BuyerPower        float64          `json:"buyer_power"`
+	AllowSlowShipping bool             `json:"allow_slow_shipping"`
+	PayLaterEnabled   bool             `json:"pay_later_enabled"`
+	BundleSKU         *string          `json:"bundle_sku"`
+	Rationale         string           `json:"rationale"`
 }
 
 func (s *Store) seedIfEmpty(ctx context.Context) error {

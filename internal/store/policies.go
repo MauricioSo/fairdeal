@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 )
 
 type MerchantPolicy struct {
@@ -48,6 +49,9 @@ func (s *Store) GetActivePolicy(ctx context.Context) (*MerchantPolicy, error) {
 
 // CreatePolicyDraft creates a new policy draft with status DRAFT.
 func (s *Store) CreatePolicyDraft(ctx context.Context, prompt string, source string, cfg PolicyConfig, adjustments []string, hardFloor float64) (*MerchantPolicy, error) {
+	if err := ValidatePolicy(cfg, hardFloor); err != nil {
+		return nil, err
+	}
 	policyJSON, err := json.Marshal(cfg)
 	if err != nil {
 		return nil, err
@@ -91,6 +95,19 @@ func (s *Store) ActivatePolicy(ctx context.Context, policyID int64) (*MerchantPo
 	}
 	defer tx.Rollback()
 
+	// Revalidate stored drafts too: no activation path bypasses merchant bounds.
+	var raw string
+	var hardFloor float64
+	if err := tx.QueryRowContext(ctx, "SELECT policy_json,hard_floor_margin_pct FROM merchant_policies WHERE id=?", policyID).Scan(&raw, &hardFloor); err != nil {
+		return nil, err
+	}
+	var cfg PolicyConfig
+	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
+		return nil, err
+	}
+	if err := ValidatePolicy(cfg, hardFloor); err != nil {
+		return nil, err
+	}
 	// Verify policy exists
 	var count int
 	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM merchant_policies WHERE id = ?", policyID).Scan(&count); err != nil {
@@ -110,6 +127,9 @@ func (s *Store) ActivatePolicy(ctx context.Context, policyID int64) (*MerchantPo
 		return nil, fmt.Errorf("activate policy %d: %w", policyID, err)
 	}
 
+	if _, err := tx.ExecContext(ctx, "UPDATE agreements SET status='EXPIRED',status_reason='POLICY_CHANGED',updated_at=? WHERE status='OFFERED'", NowUnix()); err != nil {
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -140,4 +160,12 @@ func (s *Store) ListPolicyDrafts(ctx context.Context) ([]MerchantPolicy, error) 
 		list = append(list, p)
 	}
 	return list, rows.Err()
+}
+
+// ValidatePolicy is used for manual drafts and activation, independently of AI.
+func ValidatePolicy(c PolicyConfig, hardFloor float64) error {
+	if math.IsNaN(c.MinMarginPct) || math.IsInf(c.MinMarginPct, 0) || c.MinMarginPct < hardFloor || c.MinMarginPct > 0.60 || math.IsNaN(c.MaxDiscountPct) || c.MaxDiscountPct < 0 || c.MaxDiscountPct > 0.30 || math.IsNaN(c.BuyerPower) || c.BuyerPower < 0.20 || c.BuyerPower > 0.50 {
+		return fmt.Errorf("policy outside authorized bounds")
+	}
+	return c.Economics.Validate()
 }

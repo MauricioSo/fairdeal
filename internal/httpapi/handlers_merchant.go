@@ -33,6 +33,7 @@ func (h *MerchantHandler) guard(next http.HandlerFunc) http.HandlerFunc {
 func (h *MerchantHandler) Register(mux *http.ServeMux) {
 	h.auth.Register(mux)
 	h.registerCatalog(mux)
+	h.registerEconomics(mux)
 	mux.HandleFunc("GET /api/merchant/events", h.guard(h.events))
 	mux.HandleFunc("GET /api/merchant/policy", h.guard(h.handleGetPolicy))
 	mux.HandleFunc("POST /api/merchant/policy/compile", h.guard(h.handleCompilePolicy))

@@ -1,0 +1,15 @@
+.economic-panel {padding:24px;margin:24px 0;border:1px solid var(--border,#ddd);border-radius:16px;background:var(--surface,#faf9f4);color:var(--text,#222)}
+.economic-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:20px 0}
+.economic-panel label {display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.economic-panel input,.economic-panel select {max-width:100%;padding:10px;border:1px solid #aaa;border-radius:6px;color:#222;background:#fff;font:inherit}
+.economic-panel input[type=checkbox] {align-self:flex-start;width:20px;height:20px}
+.economic-panel button {padding:10px 16px;margin:10px 8px 10px 0;border:1px solid #777;border-radius:8px;background:#222831;color:white;cursor:pointer}
+.economic-panel button:disabled {opacity:.55;cursor:wait}
+.economic-panel details {padding:12px 0;border-bottom:1px solid #ccc}
+.economic-panel summary {cursor:pointer;line-height:1.6;font-weight:600}
+.economic-product {display:flex;align-items:center;flex-wrap:wrap;gap:18px;padding:12px 0;border-bottom:1px solid #ccc}
+.economic-product span {flex:1 1 220px}
+.economic-product input[type=number] {width:110px}
+.economic-breakdown {display:grid;grid-template-columns:minmax(160px,1fr) auto;gap:6px 18px;max-width:600px;padding:12px}
+.economic-breakdown dt,.economic-breakdown dd {margin:0;font-size:.9rem}
+.economic-breakdown dd {text-align:right;font-variant-numeric:tabular-nums}

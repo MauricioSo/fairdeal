@@ -59,6 +59,7 @@
       background: var(--bg-subtle);
     }
   </style>
+<link rel="stylesheet" href="/css/economics.css">
 </head>
 <body>
   <header>
@@ -118,7 +119,7 @@
       <div class="metric-card">
         <span class="metric-title">Captures below catalog checkout</span>
         <span class="metric-value" id="metric-rescued" style="color:var(--green);">0</span>
-        <span class="metric-sub">Budget below list total</span>
+        <span class="metric-sub">Captured below catalog checkout</span>
       </div>
 
       <div class="metric-card">
@@ -142,7 +143,7 @@
       <div class="metric-card">
         <span class="metric-title">Deadstock Units</span>
         <span class="metric-value" id="metric-deadstock" style="color:var(--purple);">0</span>
-        <span class="metric-sub">Scarves cleared from storage</span>
+        <span class="metric-sub">Accessory units cleared from storage</span>
       </div>
 
       <div class="metric-card">
@@ -240,10 +241,11 @@
               <th>Concessions</th>
               <th>Status</th>
               <th>PayPal Order</th>
+ <th>Economic audit</th>
             </tr>
           </thead>
           <tbody id="agreements-table-body">
-            <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading audit trail...</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading audit trail...</td></tr>
           </tbody>
         </table>
       </div>
@@ -256,5 +258,6 @@
 
   <script type="module" src="/js/merchant.js"></script>
 <script type="module" src="/js/catalog.js"></script>
+<script type="module" src="/js/economics.js"></script>
 </body>
 </html>

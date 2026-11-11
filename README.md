@@ -16,6 +16,22 @@ AI-assisted bilateral commerce with five fictional merchants, private buyer budg
 
 Offers are sorted by total price. Compare delivery and accessories before selecting. Pay Later is a preference; eligibility and terms are determined by PayPal. Demo delivery currently supports US and CL: all five scenarios serve US, while Alpine, Nordic and Sierra also serve CL. There is no physical fulfillment or tax engine.
 
+## Merchant profitability engine
+
+The seller console includes explicit cost/rule configuration, draft review and activation, a non-binding pack/delivery simulator, and private economic audit for each new agreement. Monetary amounts are integer USD cents and configured rates use basis points. AI policy compilation preserves the merchant's economic protections.
+
+A pure economics evaluator is the sole authority for offer profitability. It subtracts product costs, shipping, preparation, packaging, payment fees and platform fees from net revenue after included tax. Both minimum contribution and minimum order margin must hold. Optional per-product protections prevent discount/free inclusion and enforce allocated item margins. Holding-cost relief can rank candidates but never increases accounting contribution.
+
+Costs are merchant-configured values or conservative upper bounds, not verified carrier rates. Legacy optional costs default to zero and must be reviewed before real use; zero or missing product costs block automatic offers. Payment fees apply to the complete charge; platform percentage applies to net revenue. Tax is an explicitly configured included rate, not a jurisdiction-aware tax engine.
+
+Each new offer stores a private economic snapshot and economic-input revision. Checkout checks that revision and re-evaluates the snapshot inside the same transaction that reserves inventory. Changed conditions require a new offer; reserved orders retain their frozen agreement. Payment completion still requires the exact amount, currency and provider reference. Merchant snapshots contain no buyer budget or private utility.
+
+The current pack scope is one main item plus one merchant-selected accessory, one unit each, with the two existing demo delivery tiers. The simulator shows why combinations pass or fail and creates neither agreements nor payments. It does not predict customer acceptance. Arbitrary multi-item carts, carrier fulfillment and tax determination remain outside this prototype.
+
+Architecture stays within the Go monolith: pure economic value objects/rules, the clearing candidate search, an application service coordinating agreements, and transactional SQLite repositories. Strategy boundaries are limited to actual external providers; no service mesh or speculative class hierarchy is required.
+
+Before the first economics migration, an existing file-backed database gets a private consistent SQLite pre-economics backup. Historical captures and reserved orders are preserved; outstanding offers without snapshots expire and need a fresh quote.
+
 ## Run and test
 
 Use the Go version specified in go.mod. Copy .env.example to .env and configure the settings you need. Mock mode is explicitly simulated and transfers no funds.

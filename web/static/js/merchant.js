@@ -11,7 +11,7 @@ const merchantReady = fetch('/api/merchant/session', { credentials: 'same-origin
     const label = document.getElementById('merchant-email');
     if (label) label.textContent = session.email;
   });
-async function merchantFetch(url, options = {}) {
+export async function merchantFetch(url, options = {}) {
   await merchantReady;
   const headers = new Headers(options.headers || {});
   if (options.method && options.method !== 'GET') {
@@ -30,6 +30,7 @@ class MerchantDashboard {
     this.pollInterval = null;
 
     this.initDOMElements();
+ window.addEventListener("fairdeal-policy-updated",()=>this.loadPolicy());
     this.bindEvents();
     const logout = document.getElementById('merchant-logout');
     if (logout) logout.addEventListener('click', async () => {
@@ -245,6 +246,7 @@ class MerchantDashboard {
       showToast('Policy activated! Subsequent negotiations will use these parameters.');
       this.diffContainer.style.display = 'none';
       await this.loadPolicy();
+ window.dispatchEvent(new Event("fairdeal-ai-policy-updated"));
     } catch (err) {
       showToast(err.message || 'Activation failed');
     } finally {
@@ -288,7 +290,8 @@ class MerchantDashboard {
         <td><span style="color:${statusColor};font-weight:700;font-size:0.8rem;">${escapeHtml(a.status)}</span></td>
         <td style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">${escapeHtml(a.paypal_order_id || '—')}</td>
       `;
-      this.agreementsTableBody.appendChild(tr);
+      const cell=document.createElement('td');const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='View economics';const content=document.createElement('div');summary.addEventListener('click',()=>{if(!details.open){window.dispatchEvent(new CustomEvent('fairdeal-show-economics',{detail:{id:a.id,target:content}}));}});details.append(summary,content);cell.append(details);tr.append(cell);
+ this.agreementsTableBody.appendChild(tr);
     }
   }
 }

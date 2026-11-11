@@ -53,6 +53,7 @@ func CompileMerchantPolicy(ctx context.Context, text string, current store.Polic
 		BundleSKU:         raw.BundleSKU,
 		Rationale:         raw.Rationale,
 	}
+	cfg.Economics = current.Economics // AI cannot alter merchant-authorized costs or protections.
 	adjustments := applyGuardrails(&cfg, hardFloor, isDeadstock)
 
 	if cfg.Rationale == "" {

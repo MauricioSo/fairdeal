@@ -112,6 +112,11 @@ func randomHex(prefix string, bytesLen int) string {
 
 // BuildSolverInput prepares the pure domain input for the clearing solver.
 func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer clearing.BuyerConstraints, forbidPayLater bool) (*clearing.Input, *store.MerchantPolicy, error) {
+	return s.BuildSolverInputWithPolicy(ctx, sku, buyer, forbidPayLater, nil)
+}
+
+// BuildSolverInputWithPolicy also supports authenticated, non-binding merchant simulation.
+func (s *Service) BuildSolverInputWithPolicy(ctx context.Context, sku string, buyer clearing.BuyerConstraints, forbidPayLater bool, override *store.MerchantPolicy) (*clearing.Input, *store.MerchantPolicy, error) {
 	prod, err := s.store.GetProduct(ctx, sku)
 	if err != nil {
 		return nil, nil, ErrProductNotFound
@@ -125,15 +130,21 @@ func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer cleari
 		return nil, nil, fmt.Errorf("load market settings: %w", err)
 	}
 
-	pol, err := s.store.GetActivePolicy(ctx)
-	if err != nil {
+	pol := override
+	if pol == nil {
+		pol, err = s.store.GetActivePolicy(ctx)
+		if err != nil {
+			return nil, nil, ErrPolicyNotFound
+		}
+	}
+	if err = store.ValidatePolicy(pol.Policy, pol.HardFloorMarginPct); err != nil {
 		return nil, nil, ErrPolicyNotFound
 	}
 
 	var bundleProd *clearing.Product
 	if pol.Policy.BundleSKU != nil && *pol.Policy.BundleSKU != "" {
 		bp, err := s.store.GetProduct(ctx, *pol.Policy.BundleSKU)
-		if err == nil && bp != nil && bp.IsDeadstock && bp.Stock > 0 {
+		if err == nil && bp != nil && bp.SKU != prod.SKU && bp.IsDeadstock && bp.Stock > 0 {
 			bundleProd = &clearing.Product{
 				SKU:              bp.SKU,
 				ListPriceCents:   money.Cents(bp.ListPriceCents),
@@ -166,6 +177,7 @@ func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer cleari
 			PayLaterMaxCents:            money.Cents(mkt.PayLaterMaxCents),
 		},
 		Policy: clearing.Policy{
+			Economics:         pol.Policy.Economics,
 			MinMarginPct:      pol.Policy.MinMarginPct,
 			MaxDiscountPct:    pol.Policy.MaxDiscountPct,
 			BuyerPower:        pol.Policy.BuyerPower,
@@ -212,6 +224,10 @@ func (s *Service) Preview(ctx context.Context, sku string, buyer clearing.BuyerC
 func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku string, buyer clearing.BuyerConstraints, forbidPayLater bool) (*CommitResult, error) {
 	s.commitMu.Lock()
 	defer s.commitMu.Unlock()
+	revision, err := s.store.EconomicRevision(ctx)
+	if err != nil {
+		return nil, err
+	}
 	in, pol, err := s.BuildSolverInput(ctx, sku, buyer, forbidPayLater)
 	if err != nil {
 		return nil, err
@@ -246,7 +262,13 @@ func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku stri
 		bundleSKU = &in.Bundle.SKU
 	}
 
+	candidate := clearing.OfferCandidate(*in, res.PriceCents, res.Shipping, res.Bundle)
+	evaluation := clearing.EvaluateOffer(*in, res.PriceCents, res.Shipping, res.Bundle)
+	if !evaluation.Approved {
+		return nil, clearing.ErrNoZOPA
+	}
 	rec := &store.AgreementRecord{
+		Economics:          &store.EconomicSnapshot{Version: 1, PolicyID: pol.ID, Revision: revision, Candidate: candidate, Evaluation: evaluation},
 		DeliveryCountry:    buyer.DeliveryCountry,
 		ID:                 agreementID,
 		NegotiationID:      negotiationID,
@@ -372,8 +394,7 @@ func (s *Service) Redeem(ctx context.Context, agreementID, tokenHex string) (*st
 		return agr, nil
 	}
 	// Atomic transition OFFERED -> ORDER_CREATED
-	reason := "CHECKOUT_INITIATED"
-	if err := s.store.TransitionAgreement(ctx, agreementID, store.StatusOffered, store.StatusOrderCreated, &reason, nil, nil); err != nil {
+	if err := s.store.ReserveEconomically(ctx, agreementID); err != nil {
 		return nil, err
 	}
 

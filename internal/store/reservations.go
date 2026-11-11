@@ -9,7 +9,7 @@ var ErrOutOfStock = errors.New("product is no longer available")
 
 // transitionWithInventory atomically reserves/consumes/releases both products.
 // Stock is available stock: deducted on reserve, restored only on confirmed failure.
-func (s *Store) transitionWithInventory(ctx context.Context, id, from, to string, reason, orderID, captureID *string) error {
+func (s *Store) transitionWithInventory(ctx context.Context, id, from, to string, reason, orderID, captureID *string, economicCheck ...bool) error {
 	if !IsValidTransition(from, to) {
 		return ErrInvalidTransition
 	}
@@ -36,6 +36,11 @@ func (s *Store) transitionWithInventory(ctx context.Context, id, from, to string
 		}
 	}
 	if from == StatusOffered && to == StatusOrderCreated {
+		if len(economicCheck) > 0 && economicCheck[0] {
+			if err = checkEconomicSnapshot(ctx, tx, id); err != nil {
+				return err
+			}
+		}
 		products := []string{sku}
 		if bundle != nil {
 			products = append(products, *bundle)

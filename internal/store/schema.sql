@@ -77,3 +77,5 @@ CREATE TABLE IF NOT EXISTS payment_reconciliation(agreement_id TEXT PRIMARY KEY 
 CREATE TABLE IF NOT EXISTS agreement_delivery(agreement_id TEXT PRIMARY KEY REFERENCES agreements(id),country TEXT NOT NULL);
 
 CREATE TABLE IF NOT EXISTS merchant_events(id INTEGER PRIMARY KEY AUTOINCREMENT,kind TEXT NOT NULL,agreement_id TEXT,created_at INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS agreement_economics(agreement_id TEXT PRIMARY KEY REFERENCES agreements(id), snapshot_json TEXT NOT NULL);

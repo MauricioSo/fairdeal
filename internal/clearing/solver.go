@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/nashpay/nashpay/internal/economics"
 	"github.com/nashpay/nashpay/internal/money"
 )
 
 // CalculateFee returns PayPal transaction fee in integer cents using rule BR-12:
 // fee = (p * fee_bps + 5000) / 10000 + fee_fixed_cents
 func CalculateFee(p money.Cents, bps int64, fixed money.Cents) money.Cents {
-	v := (int64(p)*bps + 5000) / 10000
-	return money.Cents(v) + fixed
+	return economics.Fee(p, bps, fixed)
 }
 
 // pctToBps converts a fractional percentage (0.20) into basis points (2000)
@@ -47,7 +47,6 @@ type solver struct {
 	dB           money.Cents
 	lower        money.Cents
 	upper        money.Cents
-	marginBps    int64
 	best         *candidate
 	alternatives []*candidate
 	frontiers    []optionPoints
@@ -56,12 +55,20 @@ type solver struct {
 
 // Solve executes the discrete combinatorial Nash Bargaining search across Pareto frontier candidates.
 func Solve(in Input) (*Result, error) {
+	// Bound search work and reject non-finite policy inputs before cent enumeration.
+	for _, v := range []float64{in.Policy.MinMarginPct, in.Policy.MaxDiscountPct, in.Policy.BuyerPower, in.Buyer.ShippingFlexibility} {
+		if math.IsNaN(v) || math.IsInf(v, 0) || v < 0 || v > 1 {
+			return nil, ErrNoZOPA
+		}
+	}
+	if in.Product.ListPriceCents <= 0 || in.Product.ListPriceCents > 1000000 || in.Policy.Economics.Validate() != nil {
+		return nil, ErrNoZOPA
+	}
 	s := &solver{in: in}
 	s.standardTo = in.Product.ListPriceCents + in.Market.StandardShippingChargeCents
 	if in.ReferenceValue == 0 && in.Buyer.Budget > s.standardTo {
 		s.dB = in.Buyer.Budget - s.standardTo
 	}
-	s.marginBps = pctToBps(in.Policy.MinMarginPct)
 
 	// lower = ceil(list * (1 - maxDiscount)) computed with integers.
 	keepBps := 10000 - pctToBps(in.Policy.MaxDiscountPct)
@@ -112,13 +119,6 @@ func (s *solver) options() []option {
 	return out
 }
 
-func (s *solver) shipCost(ship string) money.Cents {
-	if ship == ShippingConsolidatedGround {
-		return s.in.Market.GroundShipCostCents
-	}
-	return s.in.Market.ExpressShipCostCents
-}
-
 // buyerValue is V_b(x): budget minus waiting cost plus perceived-value bonuses.
 func (s *solver) buyerValue(o option) money.Cents {
 	m := s.in.Market
@@ -146,13 +146,6 @@ func (s *solver) bundleHolding(o option) money.Cents {
 	return 0
 }
 
-func (s *solver) bundleCost(o option) money.Cents {
-	if o.bundle && s.in.Bundle != nil {
-		return s.in.Bundle.CostCents
-	}
-	return 0
-}
-
 func (s *solver) payLaterOK(o option, p money.Cents) bool {
 	return !o.bnpl || (p >= s.in.Market.PayLaterMinCents && p <= s.in.Market.PayLaterMaxCents)
 }
@@ -161,7 +154,6 @@ func (s *solver) payLaterOK(o option, p money.Cents) bool {
 // recording its Pareto points and updating the best Nash-product candidate.
 func (s *solver) searchOption(o option) {
 	vB := s.buyerValue(o)
-	shipCost := s.shipCost(o.shipping)
 	alpha := s.in.Policy.BuyerPower
 	var pts [][2]float64
 	var optionBest *candidate
@@ -170,9 +162,10 @@ func (s *solver) searchOption(o option) {
 		if !s.payLaterOK(o, p) {
 			continue
 		}
-		fee := CalculateFee(p, s.in.Market.FeeBps, s.in.Market.FeeFixedCents)
-		contrib := p - s.in.Product.CostCents - s.bundleCost(o) - shipCost - fee
-		if !meetsMargin(contrib, p, s.marginBps) {
+		evaluation := EvaluateOffer(s.in, p, o.shipping, o.bundle)
+		fee := evaluation.Breakdown.PaymentFee
+		contrib := evaluation.Breakdown.Contribution
+		if !evaluation.Approved {
 			continue
 		}
 		uS := contrib + s.bundleHolding(o)
@@ -201,12 +194,12 @@ func (s *solver) searchOption(o option) {
 // finalize applies the whole-dollar rounding policy and recomputes surpluses.
 func (s *solver) finalize() *Result {
 	b := s.best
-	shipCost := s.shipCost(b.opt.shipping)
 	price := (b.rawPrice / 100) * 100
-	fee := CalculateFee(price, s.in.Market.FeeBps, s.in.Market.FeeFixedCents)
-	contrib := price - s.in.Product.CostCents - s.bundleCost(b.opt) - shipCost - fee
+	evaluation := EvaluateOffer(s.in, price, b.opt.shipping, b.opt.bundle)
+	fee := evaluation.Breakdown.PaymentFee
+	contrib := evaluation.Breakdown.Contribution
 
-	if price < s.lower || !meetsMargin(contrib, price, s.marginBps) || !s.payLaterOK(b.opt, price) {
+	if !evaluation.Approved || !s.payLaterOK(b.opt, price) {
 		price, fee, contrib = b.rawPrice, b.fee, b.contrib
 	}
 
@@ -279,9 +272,9 @@ func (s *solver) reconsiderRounded() {
 	bestObjective := math.Inf(-1)
 	for _, c := range s.alternatives {
 		p := (c.rawPrice / 100) * 100
-		fee := CalculateFee(p, s.in.Market.FeeBps, s.in.Market.FeeFixedCents)
-		contribution := p - s.in.Product.CostCents - s.bundleCost(c.opt) - s.shipCost(c.opt.shipping) - fee
-		if p < s.lower || !meetsMargin(contribution, p, s.marginBps) || !s.payLaterOK(c.opt, p) {
+		evaluation := EvaluateOffer(s.in, p, c.opt.shipping, c.opt.bundle)
+		contribution := evaluation.Breakdown.Contribution
+		if !evaluation.Approved || !s.payLaterOK(c.opt, p) {
 			p = c.rawPrice
 			contribution = c.contrib
 		}
