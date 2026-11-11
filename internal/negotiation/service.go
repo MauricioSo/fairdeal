@@ -74,6 +74,12 @@ type PreviewDTO struct {
 	Reason         string          `json:"reason,omitempty"`
 }
 
+type privateMaximumKey struct{}
+
+func WithPrivateMaximum(ctx context.Context, maximum money.Cents) context.Context {
+	return context.WithValue(ctx, privateMaximumKey{}, maximum)
+}
+
 type privateReferenceKey struct{}
 
 func WithPrivateReference(ctx context.Context) context.Context {
@@ -221,6 +227,9 @@ func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku stri
 		return nil, err
 	}
 
+	if maximum, ok := ctx.Value(privateMaximumKey{}).(money.Cents); ok && res.PriceCents > maximum {
+		return nil, clearing.ErrNoZOPA
+	}
 	if err := s.supersedeLive(ctx, sessionID, sku); err != nil {
 		return nil, err
 	}

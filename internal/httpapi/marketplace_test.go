@@ -178,3 +178,24 @@ func TestNordicLoginSelectsOnlyNordicPolicy(t *testing.T) {
 		t.Fatalf("wrong tenant policy: %s", policy.Body.String())
 	}
 }
+
+func TestPublicConcessionTiersAllowAffordablePackagesWithoutExposingBudget(t *testing.T) {
+	market := marketplaceFixture(t)
+	for _, budget := range []string{"105.00", "90.00"} {
+		rec := httptest.NewRecorder()
+		market.ServeHTTP(rec, httptest.NewRequest("POST", "/api/fairdeal/match", strings.NewReader(`{"budget":"`+budget+`","shipping_flexibility":0.85,"willing_to_bundle":true}`)))
+		if rec.Code != 200 {
+			t.Fatalf("affordable scenario %s: %s", budget, rec.Body.String())
+		}
+		var result WinWinMatchResponse
+		_ = json.Unmarshal(rec.Body.Bytes(), &result)
+		if len(result.AllOffers) == 0 {
+			t.Fatal("missing affordable offers")
+		}
+		for _, offer := range result.AllOffers {
+			if numericPrice(offer.FinalPrice) > numericPrice(budget) {
+				t.Fatal("offer exceeds private maximum")
+			}
+		}
+	}
+}

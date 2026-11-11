@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -333,26 +334,42 @@ func (m *Marketplace) match(w http.ResponseWriter, r *http.Request) {
 			}
 			best := req
 			var bestPrice money.Cents
+			bestObjective := math.Inf(-1)
 			for _, candidate := range candidates {
 				input, _, e := t.server.PPHandler.negService.BuildSolverInput(ctx, req.SKU, clearing.BuyerConstraints{Budget: budget, ShippingFlexibility: candidate.ShippingFlexibility, WillingToBundle: candidate.WillingToBundle, PrefersPayLater: candidate.PrefersPayLater}, false)
 				if e != nil {
 					continue
 				}
-				// Public quotation ceiling is the catalog list price, never the private buyer budget.
-				input.Buyer.Budget = input.Product.ListPriceCents
-				solved, e := clearing.Solve(*input)
-				if e == nil && solved.PriceCents <= budget && (bestPrice == 0 || solved.PriceCents < bestPrice) {
-					bestPrice = solved.PriceCents
-					best = candidate
-					best.Budget = input.Product.ListPriceCents.Format()
+				// Preauthorized public concession tiers are independent of the private budget.
+				floor := money.Cents((int64(input.Product.ListPriceCents)*(10000-int64(math.Round(input.Policy.MaxDiscountPct*10000))) + 9999) / 10000)
+				caps := []money.Cents{input.Product.ListPriceCents, input.Product.ListPriceCents * 90 / 100, input.Product.ListPriceCents * 80 / 100, floor}
+				seen := map[money.Cents]bool{}
+				for _, cap := range caps {
+					if cap < floor || seen[cap] {
+						continue
+					}
+					seen[cap] = true
+					input.Buyer.Budget = cap
+					solved, e := clearing.Solve(*input)
+					if e != nil || solved.PriceCents > budget {
+						continue
+					}
+					objective := input.Policy.BuyerPower*math.Log(float64(solved.BuyerSurplusCents)) + (1-input.Policy.BuyerPower)*math.Log(float64(solved.SellerSurplusCents))
+					if objective > bestObjective+1e-12 {
+						bestObjective = objective
+						bestPrice = solved.PriceCents
+						best = candidate
+						best.Budget = cap.Format()
+					}
 				}
+
 			}
 			if bestPrice == 0 {
 				results <- result{}
 				return
 			}
 			body, _ := json.Marshal(best)
-			clone := r.Clone(ctx)
+			clone := r.Clone(negotiation.WithPrivateMaximum(ctx, budget))
 			clone.Body = io.NopCloser(bytes.NewReader(body))
 			clone.AddCookie(&http.Cookie{Name: SessionCookieName, Value: sid})
 			rec := httptest.NewRecorder()
