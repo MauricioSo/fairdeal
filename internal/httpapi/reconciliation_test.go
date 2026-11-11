@@ -30,7 +30,7 @@ func (c *lostCaptureResponse) GetOrder(ctx context.Context, id string) (*paypal.
 	order, err := c.Client.GetOrder(ctx, id)
 	if err == nil && order != nil && c.capture != nil {
 		order.Status = "COMPLETED"
-		order.PurchaseUnits[0].Payments.Captures = []paypal.Capture{*c.capture}
+		order.PurchaseUnits[0].Payments = &paypal.PaymentsDTO{Captures: []paypal.Capture{*c.capture}}
 	}
 	return order, err
 }

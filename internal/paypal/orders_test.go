@@ -47,8 +47,11 @@ func TestBuildOrderRequestG1Bundle(t *testing.T) {
 		t.Fatalf("expected 2 items, got %d", len(pu.Items))
 	}
 
-	// Verify absence of forbidden payment_method_preference
+	// Read-only capture results must not be included when creating an order.
 	jsonBytes, _ := json.Marshal(req)
+	if strings.Contains(string(jsonBytes), `"payments"`) {
+		t.Error("create-order payload contains read-only capture results")
+	}
 	if strings.Contains(string(jsonBytes), "payment_method_preference") {
 		t.Error("OrderRequest must NOT contain payment_method_preference (PayPal API rejection risk)")
 	}

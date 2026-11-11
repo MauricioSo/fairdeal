@@ -18,7 +18,7 @@ func (h *PayPalHandler) reconcileCompleted(ctx context.Context, a *store.Agreeme
 		return false
 	}
 	unit := order.PurchaseUnits[0]
-	if unit.CustomID != a.ID || unit.Amount.CurrencyCode != "USD" || unit.Amount.Value != money.Cents(a.PriceCents).Format() || len(unit.Payments.Captures) != 1 {
+	if unit.CustomID != a.ID || unit.Amount.CurrencyCode != "USD" || unit.Amount.Value != money.Cents(a.PriceCents).Format() || unit.Payments == nil || len(unit.Payments.Captures) != 1 {
 		return false
 	}
 	capture := unit.Payments.Captures[0]

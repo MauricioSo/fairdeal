@@ -53,10 +53,11 @@ type PaymentSourceDTO struct {
 	PayPal PayPalPaymentSourceDTO `json:"paypal"`
 }
 
+type PaymentsDTO struct {
+	Captures []Capture `json:"captures"`
+}
 type PurchaseUnitDTO struct {
-	Payments struct {
-		Captures []Capture `json:"captures"`
-	} `json:"payments,omitempty"`
+	Payments    *PaymentsDTO   `json:"payments,omitempty"`
 	ReferenceID string         `json:"reference_id"`
 	CustomID    string         `json:"custom_id"`
 	InvoiceID   string         `json:"invoice_id"`
