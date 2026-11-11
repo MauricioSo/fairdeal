@@ -68,3 +68,12 @@ CREATE TABLE IF NOT EXISTS agreements (
 
 CREATE INDEX IF NOT EXISTS idx_agreements_session ON agreements(session_id, sku, created_at);
 CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status);
+
+CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS inventory_reservations(agreement_id TEXT PRIMARY KEY REFERENCES agreements(id),state TEXT NOT NULL CHECK(state IN ('HELD','CONSUMED','RELEASED')));
+CREATE TABLE IF NOT EXISTS payment_reconciliation(agreement_id TEXT PRIMARY KEY REFERENCES agreements(id),created_at INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS agreement_delivery(agreement_id TEXT PRIMARY KEY REFERENCES agreements(id),country TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS merchant_events(id INTEGER PRIMARY KEY AUTOINCREMENT,kind TEXT NOT NULL,agreement_id TEXT,created_at INTEGER NOT NULL);

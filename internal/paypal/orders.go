@@ -37,7 +37,7 @@ func BuildOrderRequest(agr *store.AgreementRecord, mainProd *store.Product, bund
 	if agr.BundleSKU != nil && bundleProd != nil {
 		bundleValCents := money.Cents(bundleProd.RetailValueCents)
 		items = append(items, OrderItemDTO{
-			Name:     fmt.Sprintf("%s (NashPay Bundle Concession)", bundleProd.Name),
+			Name:     fmt.Sprintf("%s (FairDeal Bundle Concession)", bundleProd.Name),
 			SKU:      bundleProd.SKU,
 			Quantity: "1",
 			Category: "PHYSICAL_GOODS",
@@ -78,7 +78,7 @@ func BuildOrderRequest(agr *store.AgreementRecord, mainProd *store.Product, bund
 				ReferenceID: agr.ID,
 				CustomID:    agr.ID,
 				InvoiceID:   "NASH-" + agr.ID,
-				Description: fmt.Sprintf("NashPay Cleared Contract: %s", mainProd.Name),
+				Description: fmt.Sprintf("FairDeal Cleared Contract: %s", mainProd.Name),
 				Amount: AmountDTO{
 					CurrencyCode: "USD",
 					Value:        priceCents.Format(),
@@ -90,7 +90,7 @@ func BuildOrderRequest(agr *store.AgreementRecord, mainProd *store.Product, bund
 		PaymentSource: PaymentSourceDTO{
 			PayPal: PayPalPaymentSourceDTO{
 				ExperienceContext: ExperienceContextDTO{
-					BrandName:          "NashPay Demo Store",
+					BrandName:          "FairDeal Demo Store",
 					ShippingPreference: "GET_FROM_FILE",
 					UserAction:         "PAY_NOW",
 					ReturnURL:          baseURL + "/checkout/confirmed",

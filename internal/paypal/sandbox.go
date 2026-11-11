@@ -121,8 +121,7 @@ func (s *SandboxClient) CreateOrder(ctx context.Context, orderReq OrderRequest) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("paypal create order returned status %d: %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("paypal create order returned status %d", resp.StatusCode)
 	}
 
 	var res paypalCreateOrderResponse

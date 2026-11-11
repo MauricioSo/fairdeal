@@ -14,9 +14,13 @@ services:
         value: /var/data/fairdeal.db
       - key: PAYPAL_MODE
         value: sandbox
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: MERCHANTS_JSON
         sync: false
       - key: MERCHANT_EMAIL
         sync: false

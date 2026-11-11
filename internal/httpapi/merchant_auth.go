@@ -20,6 +20,7 @@ import (
 )
 
 type MerchantAuth struct {
+	MerchantName                         string
 	store                                *store.Store
 	email, passwordHash, version, origin string
 	secure, configured                   bool
@@ -207,7 +208,7 @@ func (a *MerchantAuth) sessionInfo(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, 401, "LOGIN_REQUIRED", "sign in to continue")
 		return
 	}
-	writeJSON(w, 200, map[string]any{"email": a.email, "csrf_token": session.CSRF, "expires_at": session.ExpiresAt})
+	writeJSON(w, 200, map[string]any{"email": a.email, "csrf_token": session.CSRF, "expires_at": session.ExpiresAt, "merchant_name": a.MerchantName})
 }
 func (a *MerchantAuth) Guard(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

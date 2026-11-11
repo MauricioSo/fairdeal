@@ -43,7 +43,7 @@ func (s *Store) GetMetrics(ctx context.Context) (*MetricsResult, error) {
 	err := s.db.QueryRowContext(ctx, `
 		SELECT COUNT(*), SUM(price_cents)
 		FROM agreements
-		WHERE status = 'CAPTURED' AND buyer_budget_cents < standard_total_cents
+		WHERE status = 'CAPTURED' AND price_cents < standard_total_cents
 	`).Scan(&m.RescuedCarts, &rescuedGMVCents)
 	if err != nil {
 		return nil, err
@@ -153,6 +153,21 @@ func (s *Store) ResetDemoData(ctx context.Context) error {
 	}
 	defer tx.Rollback()
 
+	if _, err = tx.ExecContext(ctx, "UPDATE products SET stock=stock+(SELECT COUNT(*) FROM inventory_reservations r JOIN agreements a ON a.id=r.agreement_id WHERE r.state IN ('HELD','CONSUMED') AND (a.sku=products.sku OR a.bundle_sku=products.sku))"); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM payment_reconciliation"); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM inventory_reservations"); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM agreement_delivery"); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM merchant_events"); err != nil {
+		return err
+	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM agreements"); err != nil {
 		return err
 	}

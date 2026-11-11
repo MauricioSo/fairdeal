@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -117,10 +120,37 @@ func main() {
 	// HTTP API Server
 	apiServer := httpapi.NewServer(st, cfg, wsHandler, ppHandler, aiHandler, mchtHandler)
 
-	addr := fmt.Sprintf(":%d", cfg.Port)
+	marketplace, err := httpapi.NewMarketplace(apiServer, cfg, ppClient, aiHandler, baseURL, os.Getenv("MERCHANTS_JSON"))
+	if err != nil {
+		slog.Error("marketplace initialization failed", "error", err)
+		return
+	}
+	marketplace.WebhookID = os.Getenv("PAYPAL_WEBHOOK_ID")
+	defer marketplace.Close()
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				ctx, cancel := context.WithTimeout(cleanupCtx, 20*time.Second)
+				marketplace.Reconcile(ctx)
+				cancel()
+			case <-cleanupCtx.Done():
+				return
+			}
+		}
+	}()
+	host := os.Getenv("LISTEN_HOST")
+	if host == "" {
+		if parsed, e := url.Parse(baseURL); e == nil && (parsed.Hostname() == "localhost" || parsed.Hostname() == "127.0.0.1") {
+			host = "127.0.0.1"
+		}
+	}
+	addr := net.JoinHostPort(host, strconv.Itoa(cfg.Port))
 	server := &http.Server{
 		Addr:              addr,
-		Handler:           apiServer.Mux,
+		Handler:           marketplace,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

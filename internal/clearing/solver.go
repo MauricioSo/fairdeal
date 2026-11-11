@@ -43,21 +43,22 @@ type optionPoints struct {
 }
 
 type solver struct {
-	in         Input
-	dB         money.Cents
-	lower      money.Cents
-	upper      money.Cents
-	marginBps  int64
-	best       *candidate
-	frontiers  []optionPoints
-	standardTo money.Cents
+	in           Input
+	dB           money.Cents
+	lower        money.Cents
+	upper        money.Cents
+	marginBps    int64
+	best         *candidate
+	alternatives []*candidate
+	frontiers    []optionPoints
+	standardTo   money.Cents
 }
 
 // Solve executes the discrete combinatorial Nash Bargaining search across Pareto frontier candidates.
 func Solve(in Input) (*Result, error) {
 	s := &solver{in: in}
 	s.standardTo = in.Product.ListPriceCents + in.Market.StandardShippingChargeCents
-	if in.Buyer.Budget > s.standardTo {
+	if in.ReferenceValue == 0 && in.Buyer.Budget > s.standardTo {
 		s.dB = in.Buyer.Budget - s.standardTo
 	}
 	s.marginBps = pctToBps(in.Policy.MinMarginPct)
@@ -79,6 +80,9 @@ func Solve(in Input) (*Result, error) {
 	if s.best == nil {
 		return nil, ErrNoZOPA
 	}
+	if in.ReferenceValue > 0 {
+		s.reconsiderRounded()
+	}
 	return s.finalize(), nil
 }
 
@@ -86,7 +90,7 @@ func Solve(in Input) (*Result, error) {
 // shipping (express, ground) x pay later (false, true) x bundle (false, true).
 func (s *solver) options() []option {
 	ships := []string{ShippingExpress}
-	if s.in.Policy.AllowSlowShipping {
+	if s.in.Policy.AllowSlowShipping && s.in.Buyer.ShippingFlexibility > 0 {
 		ships = append(ships, ShippingConsolidatedGround)
 	}
 	bnpls := []bool{false}
@@ -119,6 +123,9 @@ func (s *solver) shipCost(ship string) money.Cents {
 func (s *solver) buyerValue(o option) money.Cents {
 	m := s.in.Market
 	v := s.in.Buyer.Budget
+	if s.in.ReferenceValue > 0 {
+		v = s.in.ReferenceValue
+	}
 	if o.shipping == ShippingConsolidatedGround {
 		wait := math.Round((1.0 - s.in.Buyer.ShippingFlexibility) * float64(m.WaitCostMaxCents))
 		v -= money.Cents(wait)
@@ -157,6 +164,7 @@ func (s *solver) searchOption(o option) {
 	shipCost := s.shipCost(o.shipping)
 	alpha := s.in.Policy.BuyerPower
 	var pts [][2]float64
+	var optionBest *candidate
 
 	for p := s.lower; p <= s.upper; p++ {
 		if !s.payLaterOK(o, p) {
@@ -174,9 +182,16 @@ func (s *solver) searchOption(o option) {
 		}
 		pts = append(pts, [2]float64{float64(uB) / 100.0, float64(uS) / 100.0})
 		obj := alpha*math.Log(float64(uB)) + (1.0-alpha)*math.Log(float64(uS))
+		current := &candidate{opt: o, rawPrice: p, fee: fee, contrib: contrib, obj: obj}
+		if optionBest == nil || obj > optionBest.obj+1e-12 {
+			optionBest = current
+		}
 		if s.best == nil || obj > s.best.obj+1e-12 {
 			s.best = &candidate{opt: o, rawPrice: p, fee: fee, contrib: contrib, obj: obj}
 		}
+	}
+	if optionBest != nil {
+		s.alternatives = append(s.alternatives, optionBest)
 	}
 	if len(pts) > 0 {
 		s.frontiers = append(s.frontiers, optionPoints{opt: o, points: pts})
@@ -257,4 +272,28 @@ func formatOptionLabel(ship string, bnpl, bundle bool) string {
 		bundleLabel = "Bundle"
 	}
 	return fmt.Sprintf("%s · %s · %s", shipLabel, bnplLabel, bundleLabel)
+}
+
+// Compare the rounded, revalidated economic result of every strategy.
+func (s *solver) reconsiderRounded() {
+	bestObjective := math.Inf(-1)
+	for _, c := range s.alternatives {
+		p := (c.rawPrice / 100) * 100
+		fee := CalculateFee(p, s.in.Market.FeeBps, s.in.Market.FeeFixedCents)
+		contribution := p - s.in.Product.CostCents - s.bundleCost(c.opt) - s.shipCost(c.opt.shipping) - fee
+		if p < s.lower || !meetsMargin(contribution, p, s.marginBps) || !s.payLaterOK(c.opt, p) {
+			p = c.rawPrice
+			contribution = c.contrib
+		}
+		buyer := s.buyerValue(c.opt) - p - s.dB
+		seller := contribution + s.bundleHolding(c.opt)
+		if buyer <= 0 || seller <= 0 {
+			continue
+		}
+		objective := s.in.Policy.BuyerPower*math.Log(float64(buyer)) + (1-s.in.Policy.BuyerPower)*math.Log(float64(seller))
+		if objective > bestObjective+1e-12 {
+			bestObjective = objective
+			s.best = c
+		}
+	}
 }

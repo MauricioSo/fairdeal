@@ -54,6 +54,9 @@ type PaymentSourceDTO struct {
 }
 
 type PurchaseUnitDTO struct {
+	Payments struct {
+		Captures []Capture `json:"captures"`
+	} `json:"payments,omitempty"`
 	ReferenceID string         `json:"reference_id"`
 	CustomID    string         `json:"custom_id"`
 	InvoiceID   string         `json:"invoice_id"`

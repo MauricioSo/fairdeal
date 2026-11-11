@@ -23,6 +23,7 @@ export class NegotiatorApp {
     this.flexSlider = document.getElementById('flex-slider');
     this.flexValue = document.getElementById('flex-val');
     this.bnplToggle = document.getElementById('bnpl-toggle');
+ window.addEventListener('fairdeal-delivery-change',()=>this.scheduleConstraintsUpdate());
     this.bundleToggle = document.getElementById('bundle-toggle');
 
     this.aiPromptInput = document.getElementById('ai-prompt-input');
@@ -118,7 +119,7 @@ export class NegotiatorApp {
         const count = this.lastMatchResponse && this.lastMatchResponse.top_offers
           ? this.lastMatchResponse.top_offers.length
           : 4;
-        this.step3Summary.textContent = `${count} Validated Package`;
+        this.step3Summary.textContent = `${count} fictional merchants · compare packages`;
       }
     }
 
@@ -161,7 +162,7 @@ export class NegotiatorApp {
       this.btnToggleAllOffers.addEventListener('click', () => {
         this.showingAllOffers = !this.showingAllOffers;
         this.allOffersContainer.style.display = this.showingAllOffers ? 'flex' : 'none';
-        const total = this.lastMatchResponse ? this.lastMatchResponse.all_offers.length : 8;
+        const total = this.lastMatchResponse ? this.lastMatchResponse.all_offers.length : 5;
         this.btnToggleAllOffers.textContent = this.showingAllOffers
           ? 'Hide extra combinations ↑'
           : `Show all ${total} seller combinations ↓`;
@@ -298,6 +299,7 @@ export class NegotiatorApp {
   getConstraints() {
     return {
       budget: parseFloat(this.budgetSlider.value).toFixed(2),
+ delivery_country: document.getElementById("delivery-country")?.value || "US",
       shipping_flexibility: parseFloat(this.flexSlider.value),
       prefers_pay_later: this.bnplToggle ? this.bnplToggle.checked : true,
       willing_to_bundle: this.getSelectedAccessories().includes('scarf') && (!this.bundleToggle || this.bundleToggle.checked)
@@ -316,6 +318,7 @@ export class NegotiatorApp {
       const matchRes = await matchWinWinOffers({
         sku: this.sku,
         budget: c.budget,
+ delivery_country:c.delivery_country,
         shipping_flexibility: c.shipping_flexibility,
         prefers_pay_later: c.prefers_pay_later,
         willing_to_bundle: c.willing_to_bundle
@@ -480,6 +483,7 @@ export class NegotiatorApp {
   }
 
   selectOffer(offer) {
+ const standard=document.getElementById("selected-standard-total");if(standard)standard.textContent="$"+offer.standard_total;
     document.querySelectorAll('.offer-card').forEach(el => {
       el.classList.toggle('selected', el.dataset.offerId === offer.offer_id);
     });
@@ -521,11 +525,8 @@ export class NegotiatorApp {
       final_price: offer.final_price,
       concessions: offer.concessions
     }, (agrId) => {
-      this.send({
-        event: 'REQUOTE_WITHOUT_PAY_LATER',
-        seq: this.seq++,
-        agreement_id: agrId
-      });
+      if(this.bnplToggle)this.bnplToggle.checked=false;
+      this.runWinWinMatch();
     });
   }
 

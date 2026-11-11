@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/nashpay/nashpay/internal/clearing"
@@ -73,9 +74,16 @@ type PreviewDTO struct {
 	Reason         string          `json:"reason,omitempty"`
 }
 
+type privateReferenceKey struct{}
+
+func WithPrivateReference(ctx context.Context) context.Context {
+	return context.WithValue(ctx, privateReferenceKey{}, true)
+}
+
 type Service struct {
 	store      *store.Store
 	hmacSecret []byte
+	commitMu   sync.Mutex
 	ttlSeconds int64
 }
 
@@ -103,6 +111,9 @@ func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer cleari
 		return nil, nil, ErrProductNotFound
 	}
 
+	if prod.Stock <= 0 {
+		return nil, nil, ErrProductNotFound
+	}
 	mkt, err := s.store.GetMarketSettings(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load market settings: %w", err)
@@ -116,7 +127,7 @@ func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer cleari
 	var bundleProd *clearing.Product
 	if pol.Policy.BundleSKU != nil && *pol.Policy.BundleSKU != "" {
 		bp, err := s.store.GetProduct(ctx, *pol.Policy.BundleSKU)
-		if err == nil && bp != nil && bp.IsDeadstock {
+		if err == nil && bp != nil && bp.IsDeadstock && bp.Stock > 0 {
 			bundleProd = &clearing.Product{
 				SKU:              bp.SKU,
 				ListPriceCents:   money.Cents(bp.ListPriceCents),
@@ -159,6 +170,9 @@ func (s *Service) BuildSolverInput(ctx context.Context, sku string, buyer cleari
 		ForbidPayLater: forbidPayLater,
 	}
 
+	if enabled, _ := ctx.Value(privateReferenceKey{}).(bool); enabled {
+		in.ReferenceValue = 13500
+	}
 	return in, pol, nil
 }
 
@@ -190,6 +204,8 @@ func (s *Service) Preview(ctx context.Context, sku string, buyer clearing.BuyerC
 // At most one live agreement exists per (session, sku): a previous OFFERED one is superseded, while an
 // in-flight ORDER_CREATED one blocks the new commit with ErrLiveAgreement.
 func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku string, buyer clearing.BuyerConstraints, forbidPayLater bool) (*CommitResult, error) {
+	s.commitMu.Lock()
+	defer s.commitMu.Unlock()
 	in, pol, err := s.BuildSolverInput(ctx, sku, buyer, forbidPayLater)
 	if err != nil {
 		return nil, err
@@ -222,6 +238,7 @@ func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku stri
 	}
 
 	rec := &store.AgreementRecord{
+		DeliveryCountry:    buyer.DeliveryCountry,
 		ID:                 agreementID,
 		NegotiationID:      negotiationID,
 		SessionID:          sessionID,
@@ -230,11 +247,11 @@ func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku stri
 		PriceCents:         int64(res.PriceCents),
 		ShippingTier:       res.Shipping,
 		PayLater:           res.PayLater,
-		BuyerBudgetCents:   int64(buyer.Budget),
+		BuyerBudgetCents:   0,
 		StandardTotalCents: int64(res.StandardTotalCents),
 		FeeCents:           int64(res.FeeCents),
 		ContributionCents:  int64(res.ContributionCents),
-		BuyerSurplusCents:  int64(res.BuyerSurplusCents),
+		BuyerSurplusCents:  0,
 		SellerSurplusCents: int64(res.SellerSurplusCents),
 		PolicyID:           pol.ID,
 		SolverLatencyUs:    latencyUs,
@@ -247,6 +264,7 @@ func (s *Service) Commit(ctx context.Context, sessionID, negotiationID, sku stri
 
 	// Sign HMAC clearing token
 	tokenPayload := clearing.AgreementTokenPayload{
+		MerchantID: s.store.MerchantID(), SKU: sku, PolicyID: pol.ID, DeliveryCountry: buyer.DeliveryCountry,
 		AgreementID:   agreementID,
 		PriceCents:    int64(res.PriceCents),
 		Shipping:      res.Shipping,
@@ -325,6 +343,7 @@ func (s *Service) Redeem(ctx context.Context, agreementID, tokenHex string) (*st
 
 	// Verify cryptographic token
 	payload := clearing.AgreementTokenPayload{
+		MerchantID: s.store.MerchantID(), SKU: agr.SKU, PolicyID: agr.PolicyID, DeliveryCountry: agr.DeliveryCountry,
 		AgreementID:   agr.ID,
 		PriceCents:    agr.PriceCents,
 		Shipping:      agr.ShippingTier,
@@ -333,10 +352,16 @@ func (s *Service) Redeem(ctx context.Context, agreementID, tokenHex string) (*st
 		ExpiresAtUnix: agr.ExpiresAt,
 	}
 	now := store.NowUnix()
+	if agr.Status == store.StatusOrderCreated && s.store.PaymentUncertain(ctx, agr.ID) {
+		now = agr.ExpiresAt
+	}
 	if err := clearing.Verify(payload, tokenHex, s.hmacSecret, now); err != nil {
 		return nil, err
 	}
 
+	if agr.Status == store.StatusOrderCreated && s.store.PaymentUncertain(ctx, agr.ID) {
+		return agr, nil
+	}
 	// Atomic transition OFFERED -> ORDER_CREATED
 	reason := "CHECKOUT_INITIATED"
 	if err := s.store.TransitionAgreement(ctx, agreementID, store.StatusOffered, store.StatusOrderCreated, &reason, nil, nil); err != nil {

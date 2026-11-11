@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fairdeal Seller Console — Transparent Bilateral Commerce</title>
+  <title>FairDeal Seller Console — Transparent Bilateral Commerce</title>
   <link rel="stylesheet" href="/css/app.css">
   <style>
     .metrics-grid {
@@ -65,13 +65,13 @@
     <div class="header-content">
       <a href="/" class="brand">
         <span class="brand-mark">F</span>
-        <span>Fairdeal</span>
+        <span>FairDeal</span>
         <span class="brand-badge">Seller Console</span>
       </a>
       <div class="header-nav" style="display:flex;align-items:center;gap:0.75rem;">
         <span class="user-pill-fairdeal" style="font-size:0.78rem;">
           <span class="dot-fairdeal"></span>
-          <span>Alpine Gear Co. (Seller)</span>
+          <span id="active-merchant-name">Your merchant account</span>
         </span>
         
         <a href="/">← Buyer View</a>
@@ -84,7 +84,7 @@
     <p>Demo inventory and configured costs. Metrics reflect stored captures, including simulations in mock mode. Conversion lift has not been measured.</p>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:1.5rem 0 1rem;flex-wrap:wrap;gap:1rem;">
       <div>
-        <h1 style="font-size:1.6rem;font-weight:400;color:var(--heading);margin:0;">Seller Console &bull; Fairdeal Demo Merchant</h1>
+        <h1 style="font-size:1.6rem;font-weight:400;color:var(--heading);margin:0;">Seller Console &bull; FairDeal Demo Merchant</h1>
         <p style="color:var(--text-muted);font-size:0.86rem;font-weight:300;margin:0;">
           Transparent bilateral clearing: "I choose, you choose" saves sales lost to rigid or surge pricing.
         </p>
@@ -94,7 +94,7 @@
       </span>
     </div>
 
-    <!-- Comparison Banner: Selling with Fairdeal Protocol vs. Selling Alone -->
+    <!-- Comparison Banner: Selling with FairDeal Protocol vs. Selling Alone -->
     <div class="card" style="margin-bottom:1.5rem;background:var(--island-bg);color:var(--island-text);border:1px solid rgba(255,255,255,0.08);border-radius:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;">
       <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
         <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling Alone (Rigid Checkout)</div>
@@ -102,7 +102,7 @@
         <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Demo catalog checkout: $135.00; not an observed abandonment rate</div>
       </div>
       <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
-        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling with Fairdeal Protocol</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling with FairDeal Protocol</div>
         <div id="compare-winwin-gmv" style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:var(--accent);margin-top:0.2rem;">$0.00 captured</div>
         <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Captured orders below the seeded catalog checkout total</div>
       </div>
@@ -124,7 +124,7 @@
       <div class="metric-card">
         <span class="metric-title">Captured value below catalog checkout</span>
         <span class="metric-value" id="metric-gmv" style="color:var(--heading);">$0.00</span>
-        <span class="metric-sub">Sales salvaged by Fairdeal</span>
+        <span class="metric-sub">Sales salvaged by FairDeal</span>
       </div>
 
       <div class="metric-card">
@@ -251,9 +251,10 @@
   </main>
 
   <footer>
-    Fairdeal &bull; AI-assisted commerce demo &bull; PayPal AI Hackathon 2026
+    FairDeal &bull; AI-assisted commerce demo &bull; PayPal AI Hackathon 2026
   </footer>
 
   <script type="module" src="/js/merchant.js"></script>
+<script type="module" src="/js/catalog.js"></script>
 </body>
 </html>

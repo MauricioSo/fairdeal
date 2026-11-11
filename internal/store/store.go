@@ -22,7 +22,9 @@ var (
 )
 
 type Store struct {
-	db *sql.DB
+	merchantID string
+	dbPath     string
+	db         *sql.DB
 }
 
 // DB returns the underlying sql.DB instance for testing or advanced transactions.
@@ -68,7 +70,7 @@ func Open(ctx context.Context, dbPath string) (*Store, error) {
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
 
-	s := &Store{db: db}
+	s := &Store{db: db, dbPath: dbPath}
 
 	// Run idempotent seed
 	if err := s.seedIfEmpty(ctx); err != nil {

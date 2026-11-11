@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fairdeal Buyer Agent</title>
+  <title>FairDeal Buyer Agent</title>
   <style>
     body {
       width: 370px;
@@ -71,26 +71,27 @@
   <div class="header">
     <div class="brand">
       <span class="logo">F</span>
-      <span>Fairdeal Agent</span>
+      <span>FairDeal Agent</span>
     </div>
     <span style="font-size:11px;background:#222831;color:#d6fb38;padding:3px 8px;border-radius:99px;font-weight:600;">
-      Anti-Surge
+      Sandbox demo
     </span>
   </div>
 
   <div class="card">
-    <div style="font-size:11px;color:#748092;font-weight:500;text-transform:uppercase;">Protected Savings (vs. Dynamic Markup)</div>
-    <div id="ext-savings" style="font-size:20px;font-weight:400;font-family:monospace;color:#1a2028;margin-top:2px;">$178.00 Total Benefit</div>
+    <div style="font-size:11px;color:#748092;font-weight:500;text-transform:uppercase;">Five fictional merchants</div>
+    <div id="ext-savings" style="font-size:20px;font-weight:400;font-family:monospace;color:#1a2028;margin-top:2px;">Budget stays private</div>
     <div style="font-size:11px;color:#748092;">"Fair for both: I choose, you choose"</div>
   </div>
 
   <div class="card">
     <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px;">Max Target Budget ($ USD):</label>
-    <input id="ext-budget" type="number" value="105" style="width:100%;padding:6px;border:1px solid #dad6cc;border-radius:6px;margin-bottom:8px;background:#ffffff;">
-    <button id="ext-negotiate" class="btn">Find a Fairdeal Offer →</button>
+    <input id="ext-budget" type="number" value="130" style="width:100%;padding:6px;border:1px solid #dad6cc;border-radius:6px;margin-bottom:8px;background:#ffffff;">
+    <button id="ext-negotiate" class="btn">Find a FairDeal Offer →</button>
     <div id="ext-results"></div>
   </div>
 
-  <script src="popup.js"></script>
+  <label>FairDeal server <select id="ext-server"><option value="https://fairdeal-5h0w.onrender.com">Hosted Sandbox demo</option><option value="http://localhost:8080">Local development</option></select></label><button id="ext-open" class="btn">Open full workspace</button>
+<script type="module" src="popup.js"></script>
 </body>
 </html>

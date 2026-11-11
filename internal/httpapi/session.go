@@ -43,6 +43,7 @@ func GetOrCreateSessionID(w http.ResponseWriter, r *http.Request) string {
 		Value:    sid,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https"),
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400 * 30, // 30 days
 	})

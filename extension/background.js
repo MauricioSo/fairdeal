@@ -1,0 +1,3 @@
+import {serverURL} from './server.js';
+chrome.runtime.onInstalled.addListener(()=>chrome.contextMenus.removeAll(()=>chrome.contextMenus.create({id:'fairdeal-product',title:'Find a package on FairDeal',contexts:['page','selection','image','link']})));
+chrome.contextMenus.onClicked.addListener(async(info,tab)=>{if(info.menuItemId!=='fairdeal-product'||!tab?.id)return;let product={name:(info.selectionText||'').slice(0,200)};try{product={...product,...await chrome.tabs.sendMessage(tab.id,{type:'FAIRDEAL_EXTRACT'})};}catch{}const url=new URL(await serverURL());url.hash='product='+encodeURIComponent(JSON.stringify(product));chrome.tabs.create({url:url.href});});

@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -14,16 +15,31 @@ var (
 )
 
 type AgreementTokenPayload struct {
-	AgreementID   string
-	PriceCents    int64
-	Shipping      string
-	PayLater      bool
-	BundleSKU     *string
-	ExpiresAtUnix int64
+	DeliveryCountry string
+	MerchantID      string
+	SKU             string
+	PolicyID        int64
+	AgreementID     string
+	PriceCents      int64
+	Shipping        string
+	PayLater        bool
+	BundleSKU       *string
+	ExpiresAtUnix   int64
 }
 
 // Canonical formats the agreement payload for cryptographic signing.
 func (a AgreementTokenPayload) Canonical() string {
+	if a.MerchantID != "" {
+		b, _ := json.Marshal(struct {
+			Version                                                       int
+			Merchant, Agreement, SKU, Currency, Shipping, DeliveryCountry string
+			Price, Policy, Expires                                        int64
+			PayLater                                                      bool
+			Bundle                                                        *string
+			Quantity                                                      int
+		}{2, a.MerchantID, a.AgreementID, a.SKU, "USD", a.Shipping, a.DeliveryCountry, a.PriceCents, a.PolicyID, a.ExpiresAtUnix, a.PayLater, a.BundleSKU, 1})
+		return string(b)
+	}
 	bundleStr := "-"
 	if a.BundleSKU != nil && *a.BundleSKU != "" {
 		bundleStr = *a.BundleSKU

@@ -15,6 +15,7 @@ import (
 
 // Only explicitly submitted deal constraints are used. Browsing history is not collected.
 type WinWinMatchRequest struct {
+	DeliveryCountry     string  `json:"delivery_country"`
 	SKU                 string  `json:"sku"`
 	Budget              string  `json:"budget"`
 	ShippingFlexibility float64 `json:"shipping_flexibility"`
@@ -64,7 +65,7 @@ func (h *PayPalHandler) handleWinWinMatch(w http.ResponseWriter, r *http.Request
 		writeJSONError(w, http.StatusBadRequest, "INVALID", "budget must be between $1 and $10,000 and delivery flexibility between 0 and 1")
 		return
 	}
-	buyer := clearing.BuyerConstraints{Budget: budget, ShippingFlexibility: req.ShippingFlexibility, PrefersPayLater: req.PrefersPayLater, WillingToBundle: req.WillingToBundle}
+	buyer := clearing.BuyerConstraints{DeliveryCountry: req.DeliveryCountry, Budget: budget, ShippingFlexibility: req.ShippingFlexibility, PrefersPayLater: req.PrefersPayLater, WillingToBundle: req.WillingToBundle}
 	sid := GetOrCreateSessionID(w, r)
 	result, err := h.negService.Commit(r.Context(), sid, "", req.SKU, buyer, false)
 	if err != nil {

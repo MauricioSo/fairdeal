@@ -16,6 +16,7 @@ const (
 )
 
 type AgreementRecord struct {
+	DeliveryCountry    string  `json:"delivery_country,omitempty"`
 	ID                 string  `json:"id"`
 	NegotiationID      string  `json:"negotiation_id"`
 	SessionID          string  `json:"session_id"`
@@ -24,11 +25,11 @@ type AgreementRecord struct {
 	PriceCents         int64   `json:"price_cents"`
 	ShippingTier       string  `json:"shipping_tier"`
 	PayLater           bool    `json:"pay_later"`
-	BuyerBudgetCents   int64   `json:"buyer_budget_cents"`
+	BuyerBudgetCents   int64   `json:"-"`
 	StandardTotalCents int64   `json:"standard_total_cents"`
 	FeeCents           int64   `json:"fee_cents"`
 	ContributionCents  int64   `json:"contribution_cents"`
-	BuyerSurplusCents  int64   `json:"buyer_surplus_cents"`
+	BuyerSurplusCents  int64   `json:"-"`
 	SellerSurplusCents int64   `json:"seller_surplus_cents"`
 	PolicyID           int64   `json:"policy_id"`
 	Status             string  `json:"status"`
@@ -84,7 +85,12 @@ func (s *Store) CreateAgreement(ctx context.Context, a *AgreementRecord) error {
 	a.UpdatedAt = now
 	a.Status = StatusOffered
 
-	_, err := s.db.ExecContext(ctx, `
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	_, err = tx.ExecContext(ctx, `
 		INSERT INTO agreements (
 			id, negotiation_id, session_id, sku, bundle_sku, price_cents, shipping_tier,
 			pay_later, buyer_budget_cents, standard_total_cents, fee_cents, contribution_cents,
@@ -105,7 +111,13 @@ func (s *Store) CreateAgreement(ctx context.Context, a *AgreementRecord) error {
 	if err != nil {
 		return fmt.Errorf("create agreement: %w", err)
 	}
-	return nil
+	if _, err = tx.ExecContext(ctx, "INSERT INTO agreement_delivery(agreement_id,country)VALUES(?,?)", a.ID, a.DeliveryCountry); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "INSERT INTO merchant_events(kind,agreement_id,created_at)VALUES('QUOTE_CREATED',?,?)", a.ID, NowUnix()); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // GetAgreement retrieves an agreement by ID.
@@ -131,6 +143,7 @@ func (s *Store) GetAgreement(ctx context.Context, id string) (*AgreementRecord, 
 		return nil, err
 	}
 	a.PayLater = payLaterInt == 1
+	_ = s.db.QueryRowContext(ctx, "SELECT country FROM agreement_delivery WHERE agreement_id=?", id).Scan(&a.DeliveryCountry)
 	return &a, nil
 }
 
@@ -162,44 +175,7 @@ func (s *Store) GetAgreementByPayPalOrderID(ctx context.Context, orderID string)
 
 // TransitionAgreement atomically updates agreement status from fromStatus to toStatus.
 func (s *Store) TransitionAgreement(ctx context.Context, id string, fromStatus, toStatus string, reason *string, payPalOrderID, captureID *string) error {
-	if !IsValidTransition(fromStatus, toStatus) {
-		return fmt.Errorf("%w: cannot transition from %s to %s", ErrInvalidTransition, fromStatus, toStatus)
-	}
-
-	now := NowUnix()
-	res, err := s.db.ExecContext(ctx, `
-		UPDATE agreements
-		SET status = ?,
-		    status_reason = COALESCE(?, status_reason),
-		    paypal_order_id = COALESCE(?, paypal_order_id),
-		    capture_id = COALESCE(?, capture_id),
-		    updated_at = ?
-		WHERE id = ? AND status = ?
-	`, toStatus, reason, payPalOrderID, captureID, now, id, fromStatus)
-	if err != nil {
-		return fmt.Errorf("transition agreement: %w", err)
-	}
-
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		// Inspect current status to report precise error
-		current, err := s.GetAgreement(ctx, id)
-		if err != nil {
-			return err
-		}
-		if current.Status != fromStatus {
-			if fromStatus == StatusOffered && current.Status == StatusOrderCreated {
-				return ErrAlreadyUsed
-			}
-			return fmt.Errorf("%w: agreement %s is currently %s (expected %s)", ErrInvalidTransition, id, current.Status, fromStatus)
-		}
-		return ErrNotFound
-	}
-
-	return nil
+	return s.transitionWithInventory(ctx, id, fromStatus, toStatus, reason, payPalOrderID, captureID)
 }
 
 // ExpireStale marks as EXPIRED:
@@ -221,7 +197,7 @@ func (s *Store) ExpireStale(ctx context.Context, nowUnix int64) (int64, error) {
 	resCreated, err := s.db.ExecContext(ctx, `
 		UPDATE agreements
 		SET status = 'EXPIRED', status_reason = ?, updated_at = ?
-		WHERE status = 'ORDER_CREATED' AND created_at < ?
+		WHERE status = 'ORDER_CREATED' AND created_at < ? AND id NOT IN (SELECT agreement_id FROM inventory_reservations WHERE state='HELD') AND id NOT IN (SELECT agreement_id FROM payment_reconciliation)
 	`, reasonTimeout, nowUnix, timeoutCutoff)
 	if err != nil {
 		return 0, fmt.Errorf("expire created: %w", err)
@@ -244,7 +220,7 @@ func (s *Store) GetLiveAgreementBySessionAndSKU(ctx context.Context, sessionID, 
 		       paypal_order_id, capture_id, solver_latency_us, created_at, expires_at, updated_at
 		FROM agreements
 		WHERE session_id = ? AND sku = ?
-		  AND ((status = 'OFFERED' AND expires_at > ?) OR (status = 'ORDER_CREATED' AND created_at > ?))
+		  AND ((status = 'OFFERED' AND expires_at > ?) OR (status = 'ORDER_CREATED' AND (created_at > ? OR id IN (SELECT agreement_id FROM inventory_reservations WHERE state='HELD')) ))
 		ORDER BY created_at DESC LIMIT 1
 	`, sessionID, sku, nowUnix, nowUnix-3600).Scan(
 		&a.ID, &a.NegotiationID, &a.SessionID, &a.SKU, &a.BundleSKU, &a.PriceCents, &a.ShippingTier,

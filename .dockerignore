@@ -11,3 +11,6 @@ nashpay
 *merchant-access*.json
 outputs/
 work/
+
+*private*.json
+web/static/design-preview.html

@@ -45,6 +45,7 @@ type Policy struct {
 }
 
 type BuyerConstraints struct {
+	DeliveryCountry     string
 	Budget              money.Cents
 	ShippingFlexibility float64
 	PrefersPayLater     bool
@@ -64,6 +65,7 @@ type Frontier struct {
 }
 
 type Input struct {
+	ReferenceValue money.Cents
 	Product        Product
 	Bundle         *Product
 	Market         Market

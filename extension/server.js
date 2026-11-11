@@ -1,0 +1,1 @@
+export async function serverURL(){const settings=await chrome.storage.local.get('serverURL');return ['https://fairdeal-5h0w.onrender.com','http://localhost:8080'].includes(settings.serverURL)?settings.serverURL:'https://fairdeal-5h0w.onrender.com';}

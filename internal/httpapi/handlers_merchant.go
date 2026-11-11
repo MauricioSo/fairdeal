@@ -32,6 +32,8 @@ func (h *MerchantHandler) guard(next http.HandlerFunc) http.HandlerFunc {
 
 func (h *MerchantHandler) Register(mux *http.ServeMux) {
 	h.auth.Register(mux)
+	h.registerCatalog(mux)
+	mux.HandleFunc("GET /api/merchant/events", h.guard(h.events))
 	mux.HandleFunc("GET /api/merchant/policy", h.guard(h.handleGetPolicy))
 	mux.HandleFunc("POST /api/merchant/policy/compile", h.guard(h.handleCompilePolicy))
 	mux.HandleFunc("POST /api/merchant/policy/{id}/activate", h.guard(h.handleActivatePolicy))
@@ -123,7 +125,11 @@ func (h *MerchantHandler) handleGetAgreements(w http.ResponseWriter, r *http.Req
 	if list == nil {
 		list = []store.AgreementRecord{}
 	}
-	writeJSON(w, http.StatusOK, list)
+	public := make([]map[string]any, 0, len(list))
+	for _, a := range list {
+		public = append(public, map[string]any{"id": a.ID, "sku": a.SKU, "bundle_sku": a.BundleSKU, "price_cents": a.PriceCents, "shipping_tier": a.ShippingTier, "pay_later": a.PayLater, "status": a.Status, "contribution_cents": a.ContributionCents, "created_at": a.CreatedAt, "payment_reconciliation_required": h.store.PaymentUncertain(r.Context(), a.ID)})
+	}
+	writeJSON(w, http.StatusOK, public)
 }
 
 func (h *MerchantHandler) handleResetDemo(w http.ResponseWriter, r *http.Request) {

@@ -24,6 +24,8 @@ func writeJSONError(w http.ResponseWriter, statusCode int, code, message string)
 // server-side and returned as a generic INTERNAL so internals never leak to clients.
 func writeServiceError(w http.ResponseWriter, err error) {
 	switch {
+	case errors.Is(err, store.ErrOutOfStock):
+		writeJSONError(w, http.StatusConflict, "OUT_OF_STOCK", "product is no longer available")
 	case errors.Is(err, clearing.ErrBadToken):
 		writeJSONError(w, http.StatusUnauthorized, "BAD_TOKEN", "invalid clearing token")
 	case errors.Is(err, clearing.ErrExpired):

@@ -81,21 +81,26 @@ func (h *PayPalHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if agr.PayPalOrderID != nil {
+		writeJSON(w, 201, CreateOrderResponse{OrderID: *agr.PayPalOrderID, Mode: h.mode})
+		return
+	}
 	orderID, err := h.createPayPalOrder(r, agr)
 	if err != nil {
 		// The agreement is already redeemed and cannot be reused: fail it so the buyer renegotiates.
-		reason := "ORDER_CREATE_FAILED"
-		_ = h.store.TransitionAgreement(r.Context(), agr.ID, store.StatusOrderCreated, store.StatusFailed, &reason, nil, nil)
+		_ = h.store.MarkPaymentUncertain(r.Context(), agr.ID)
 		slog.Error("paypal order creation failed", "agreement", agr.ID, "error", err)
-		writeJSONError(w, http.StatusBadGateway, "UPSTREAM", "payment provider error, please negotiate again")
+		writeJSONError(w, http.StatusBadGateway, "UPSTREAM", "payment result uncertain; retry this agreement")
 		return
 	}
 
 	if err := h.store.SetPayPalOrderID(r.Context(), agr.ID, orderID); err != nil {
+		_ = h.store.MarkPaymentUncertain(r.Context(), agr.ID)
 		writeServiceError(w, err)
 		return
 	}
 
+	_ = h.store.ClearPaymentUncertain(r.Context(), agr.ID)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(CreateOrderResponse{OrderID: orderID, Mode: h.mode})
@@ -137,20 +142,30 @@ func (h *PayPalHandler) handleCaptureOrder(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if h.reconcileCompleted(r.Context(), agr) {
+		h.writeCaptureFromStore(w, r, agr.ID)
+		return
+	}
 	if err := h.verifyOrder(r, orderID, agr); err != nil {
-		reason := "ORDER_VERIFICATION_FAILED"
-		_ = h.store.TransitionAgreement(r.Context(), agr.ID, store.StatusOrderCreated, store.StatusFailed, &reason, nil, nil)
+		if current, e := h.store.GetAgreement(r.Context(), agr.ID); e == nil && current.Status == store.StatusCaptured && current.CaptureID != nil {
+			h.writeCapture(w, current, *current.CaptureID)
+			return
+		}
+		_ = h.store.MarkPaymentUncertain(r.Context(), agr.ID)
 		slog.Warn("paypal order verification failed", "agreement", agr.ID, "error", err)
 		writeJSONError(w, http.StatusConflict, "NOT_APPROVED", "the order was not approved or does not match the agreement")
 		return
 	}
 
+	if err := h.store.BeginCapture(r.Context(), agr.ID); err != nil {
+		writeServiceError(w, err)
+		return
+	}
 	capture, err := h.paypalClient.CaptureOrder(r.Context(), orderID, agr.ID+"-capture")
 	if err != nil || capture == nil || capture.Status != "COMPLETED" || capture.ID == "" || capture.Amount.CurrencyCode != "USD" || capture.Amount.Value != money.Cents(agr.PriceCents).Format() {
-		reason := "CAPTURE_FAILED"
-		_ = h.store.TransitionAgreement(r.Context(), agr.ID, store.StatusOrderCreated, store.StatusFailed, &reason, nil, nil)
+		_ = h.store.MarkPaymentUncertain(r.Context(), agr.ID)
 		slog.Error("paypal capture failed", "agreement", agr.ID, "error", err)
-		writeJSONError(w, http.StatusBadGateway, "UPSTREAM", "payment capture failed")
+		writeJSONError(w, http.StatusBadGateway, "UPSTREAM", "payment result uncertain; retry to reconcile before starting a new purchase")
 		return
 	}
 

@@ -1,82 +1,72 @@
-# Fairdeal
+# FairDeal
 
-AI-assisted commerce that helps a buyer and a merchant find an affordable package without violating the merchant's configured contribution margin.
+AI-assisted bilateral commerce with five fictional merchants, private buyer budgets and PayPal Sandbox checkout. This is a hackathon prototype with seeded products, inventory, shipping assumptions and estimated fees.
 
-## Demo scope
+## What works
 
-One demo merchant, Alpine Gear Co., sells a Winter Parka and can include a stocked Cashmere Scarf. The catalog, inventory, costs and shipping assumptions are seeded demonstration data. There is no external merchant network or live retail-price audit.
+- Five persisted merchant scenarios: Alpine, Nordic, Glacier, Sierra and Polaris. Each uses a separate SQLite database, catalog, policies, login sessions and sales history.
+- Buyer intent parsing and merchant policy compilation through a configurable OpenAI-compatible LLM, with labeled deterministic fallbacks.
+- Five isolated seller-agent contexts. Each receives only public product/preferences and its own policy. Up to two concession revisions run under a shared concurrency limit and a bounded deadline. All monetary decisions are validated by Go.
+- Seller quotations use public catalog ceilings and a fixed demo valuation reference. The private budget only filters feasible quotes in the coordinator; it never anchors a seller's price. Buyer budgets and derived private surplus are not persisted into new merchant records or exposed in merchant APIs/metrics/prompts.
+- Catalog editing and archival behind authenticated, CSRF-protected merchant APIs. Catalog changes invalidate outstanding quotes; active reservations prevent inconsistent edits.
+- Atomic product/accessory reservations at checkout. Duplicate captures consume inventory and record a sale once. Uncertain payments retain their reservation for reconciliation instead of being treated as confirmed failures.
+- Versioned HMAC contracts bind merchant, product, policy, amount, currency, delivery, payment preference, accessory and expiration. Existing captured agreements remain intact during migration.
+- Sandbox Orders v2 amount/reference checks; provider reconciliation and a verified webhook listener. No live funds are transferred.
+- Manifest V3 extension with explicit context-menu extraction from JSON-LD/metadata, confirmation in the web app and a selectable hosted/local destination. External pages do not become participating merchants.
 
-1. Describe a budget and delivery preference. The configured LLM translates your request into editable constraints; an explicitly labeled heuristic fallback works offline.
-2. Review your maximum budget, shipping flexibility, accessory acceptance and Pay Later preference.
-3. A deterministic solver searches eligible shipping, payment and bundle combinations. Product cost, accessory cost, shipping and configured payment fees are deducted before checking the contribution margin. Estimated holding-cost savings are a separate utility term, not margin revenue.
-4. Fairdeal presents one feasible offer, copied directly from its persisted agreement. Its price and concessions are bound to an expiring HMAC token. If no agreement fits, the application reports that result without raising the buyer's budget.
-5. The buyer approves payment through PayPal. Orders are created from the stored agreement, never a client-supplied price.
+Offers are sorted by total price. Compare delivery and accessories before selecting. Pay Later is a preference; eligibility and terms are determined by PayPal. Demo delivery currently supports US and CL: all five scenarios serve US, while Alpine, Nordic and Sierra also serve CL. There is no physical fulfillment or tax engine.
 
-AI interprets buyer mandates and compiles merchant policy drafts. It does not conduct autonomous multi-agent bargaining. The offer's decision trace describes the actual solver result. Product discovery is limited to the seeded catalog.
+## Run and test
 
-## Run locally
-
-Requires Go as specified in go.mod. Copy .env.example to .env. The local default is mock payment mode, which is explicitly simulated and transfers no money.
+Use the Go version specified in go.mod. Copy .env.example to .env and configure the settings you need. Mock mode is explicitly simulated and transfers no funds.
 
 ~~~powershell
 go test -p 1 ./...
+go vet ./...
 go build -p 1 -o fairdeal.exe .
 ./fairdeal.exe
 ~~~
 
-Open http://localhost:8080 for the buyer and /merchant for the seller dashboard. On Windows, use -p 1 to limit compilation parallelism.
+Open http://localhost:8080 and /merchant/login. The database directory must exist. Keep DB_PATH and all five sibling database files on persistent storage.
 
-## PayPal Sandbox
+## Provision five private merchant logins
 
-Set PAYPAL_MODE=sandbox, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET and NASHPAY_HMAC_SECRET (at least 32 random bytes). Use Sandbox merchant and buyer accounts. Sandbox startup fails when credentials are missing; checkout never silently substitutes a mock payment button.
-
-Pay Later is a preference, not a guaranteed loan or installment schedule. Eligibility and terms are determined by PayPal. If unavailable, the application requotes without Pay Later. All configured payment fees are demo estimates. Sandbox payments do not transfer live funds.
-
-PayPal docs: https://developer.paypal.com/docs/checkout/standard/integrate/ and https://developer.paypal.com/docs/checkout/pay-later/
-
-## AI
-
-Configure LLM_BASE_URL, LLM_API_KEY and LLM_MODEL for an OpenAI-compatible provider. The example uses DeepSeek's deepseek-flash; set the model to an identifier available in your account. Failed or unconfigured requests fall back to labeled heuristic parsing. The merchant policy compiler applies deterministic bounds to proposed parameters.
-
-## Data and metrics
-
-Browsing history is not collected or requested by the extension. Explicitly submitted deal constraints are processed on the server; submitted natural-language requests go to the configured AI provider when enabled. This is not local-only or zero-leakage processing.
-
-Merchant metrics reflect stored agreements and captures, including simulations in mock mode. Captures below the catalog checkout total are not proof of recovered abandonment or conversion lift. Buyer summary is limited to the current browser session among the latest 100 agreements. No fabricated purchase history is added.
-
-Kernel market verification is unavailable until a real product source, navigation, extraction and evidence are implemented. Configuring a key does not mark prices verified and does not create billable browser sessions. Savings compare this demo catalog's standard checkout, not a verified market MSRP.
-
-## Render
-
-The render.yaml Blueprint defines a persistent Go service and SQLite disk. It requires PayPal Sandbox credentials and AI credentials, generates the agreement signing secret, and disables demo reset. Configure MERCHANT_EMAIL and MERCHANT_PASSWORD_HASH, then sign in at /merchant/login. The extension currently targets localhost; update its server URL and allowed host for a hosted demo.
-
-## Architecture
-
-Single Go binary with embedded HTML/CSS/JavaScript, pure Go SQLite, deterministic clearing solver, HMAC agreements, WebSocket previews, PayPal Orders v2 client, AI intent/policy parsing, and a Manifest V3 browser extension. The canonical matching endpoint is POST /api/fairdeal/match; legacy aliases remain for compatibility.
-
-## Limitations
-
-This is a hackathon proof of concept, not a production marketplace. There is no inventory reservation/fulfillment integration, live retail audit, verified real-world conversion study, or webhook reconciliation for uncertain payment outcomes. Contribution margin is based on configured costs and is not accounting net profit. Do not present simulated payments or data as live commerce.
-
-MIT license. Built for the PayPal AI Hackathon.
-
-## Repository contents
-
-This repository includes the runnable application source, tests, assets and deployment configuration. Internal specifications and planning documents are omitted. Credentials must be configured separately; they are not included.
-
-
-## Merchant login
-
-The seller dashboard and all merchant APIs require a login session. The old X-Merchant-Token header is not accepted. With missing or invalid login configuration, protected APIs fail closed.
-
-Generate one merchant account locally, with the output path outside this source repository:
+Generate credentials outside the checkout:
 
 ~~~powershell
-go run ./cmd/merchant-access -email merchant@fairdeal.demo -out ../merchant-access-private.json
+go run ./cmd/marketplace-access -out-dir ../private-merchant-accounts
 ~~~
 
-The output contains the generated password and its PBKDF2-HMAC-SHA256 verifier (600,000 iterations, unique random salt). Keep the file private. Configure only its email and password_hash as MERCHANT_EMAIL and MERCHANT_PASSWORD_HASH in Render. The plaintext password is never configured on the server. Updating either setting invalidates previous login sessions.
+The command refuses to overwrite files and creates two private files: merchant-access-private.json (emails and passwords) and merchant-verifiers-private.json (email/password-hash objects). Set MERCHANTS_JSON to the complete verifier JSON only. Never publish either file or place plaintext passwords in server configuration. The legacy MERCHANT_EMAIL/MERCHANT_PASSWORD_HASH pair remains available for Alpine when no Alpine object is provided.
 
-Sessions use 256-bit random cookies, with only their hashes persisted in SQLite. HTTPS deployments use Secure, HttpOnly, SameSite=Strict and the __Host- cookie prefix. Sessions expire after 30 minutes idle or four hours absolute, and logout deletes the session server-side. Login and authenticated mutations require same-origin JSON requests plus CSRF verification. Persistent login limits allow at most 10 attempts per address and 30 overall per 15 minutes; verification concurrency is bounded.
+Passwords use PBKDF2-HMAC-SHA256 with 600,000 iterations and unique salts. Sessions are revocable, have idle/absolute expiration, and use Secure/HttpOnly/SameSite Strict cookies on HTTPS. Mutations require same-origin JSON and CSRF tokens. Missing login configuration fails closed. Registration, recovery and MFA are outside this demo.
 
-This prototype supports one configured merchant account. It does not provide public registration, email-based recovery or MFA. Administrators rotate the generated credentials through the protected deployment configuration.
+## PayPal Sandbox and webhooks
+
+Set PAYPAL_MODE=sandbox, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET and a stable NASHPAY_HMAC_SECRET of at least 32 random bytes. The historical environment/module namespace remains for compatibility; the app brand is FairDeal. Sandbox startup rejects missing credentials and never substitutes mock buttons on failure.
+
+Register /api/paypal/webhook for PAYMENT.CAPTURE.COMPLETED in the same Sandbox application and set PAYPAL_WEBHOOK_ID. Until configured, the endpoint returns unavailable. Signatures are verified through PayPal before any event can schedule reconciliation; authoritative order/capture data is checked again. Repeated events do not duplicate payments. A periodic observer also reconciles uncertain captures without initiating a new capture.
+
+Five logical stores sharing a Sandbox application do not constitute marketplace payouts to five real merchant accounts.
+
+[PayPal webhook verification](https://developer.paypal.com/api/webhooks/v1/verify-webhook-signature-post)
+
+## AI and privacy
+
+Configure AI_MODE=llm, LLM_BASE_URL, LLM_MODEL and LLM_API_KEY. Use a model actually available in your account. The example uses deepseek-flash. Requests are bounded and failed/unconfigured calls fall back to explicitly labeled deterministic behavior.
+
+Submitted natural-language buyer requests may go to the configured buyer AI provider. Seller agents get separately constructed allowlisted contexts without the buyer's original prompt, budget or private utility. We do not collect browsing history. This is server-mediated processing, not a claim of local-only or inference-proof privacy: accepting a price necessarily reveals that accepted amount.
+
+Kernel market verification remains unavailable for the fictional catalog: no external equivalent product source/evidence is configured. No key triggers billable browser sessions or marks prices verified. Savings compare each merchant's seeded standard checkout, not an audited market MSRP.
+
+## Storage and recovery
+
+Alpine retains DB_PATH. Other tenants use fairdeal-nordic.db, fairdeal-glacier.db, fairdeal-sierra.db and fairdeal-polaris.db in the same directory. Tables are migrated additively. Before the first merchant-identity migration, a consistent SQLite pre-marketplace backup is written beside each file. The migration expires outstanding old-version quotes and removes legacy private budget/surplus values; capture amounts and IDs are preserved. Backups are private operational data and must never be served as public assets.
+
+Uncertain provider operations intentionally retain inventory. Review unresolved orders before releasing stock; a timeout is not proof of failure. Reconciliation observes up to ten oldest-attempted uncertain records per merchant on each pass and is not a complete accounting, refund or fulfillment system. Monitor it for long-lived pending orders.
+
+## Deployment
+
+render.yaml defines a Go service and persistent disk. Configure PayPal/AI credentials, MERCHANTS_JSON and the optional webhook ID privately in Render. Back up the database before deployment and verify each login and Sandbox checkout after startup. Never publish internal specifications, .env files, databases, backups, account files or provider credentials.
+
+MIT license. Built for the PayPal AI Hackathon.

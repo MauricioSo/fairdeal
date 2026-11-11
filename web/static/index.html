@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fairdeal — AI-assisted commerce</title>
+  <title>FairDeal — AI-assisted commerce</title>
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <div class="header-content">
       <a href="/" class="brand">
         <span class="brand-mark">F</span>
-        <span>Fairdeal</span>
+        <span>FairDeal</span>
         <span class="brand-badge">Bilateral AI Commerce</span>
       </a>
       <div class="header-nav">
@@ -35,7 +35,7 @@
 
   <main class="container">
     <!-- Progressive 3-Stage Stepper Bar -->
-    <nav class="stepper-bar" aria-label="Fairdeal Protocol Steps">
+    <nav class="stepper-bar" aria-label="FairDeal Protocol Steps">
       <button type="button" class="step-pill active" id="step-btn-1" data-step="1">
         <span class="step-num" id="step-num-1">1</span>
         <div class="step-info">
@@ -48,7 +48,7 @@
         <span class="step-num" id="step-num-2">2</span>
         <div class="step-info">
           <span class="step-label">2. Customize Levers</span>
-          <span class="step-sub" id="step-2-summary">Budget: $105 &bull; Flex: 85%</span>
+          <span class="step-sub" id="step-2-summary">Budget: $130 &bull; Flex: 85%</span>
         </div>
       </button>
       <div class="step-connector"></div>
@@ -150,7 +150,7 @@
           <span class="product-eyebrow">Alpine Technical Series &bull; SKU CH-WINTER-PARKA-01</span>
           <span class="product-stock-pill">
             <span class="dot"></span>
-            <span>One demo merchant · seeded catalog</span>
+            <span>Five fictional merchants · seeded catalog</span>
           </span>
         </div>
         <h2 class="product-title" id="prod-title">Winter Parka Performance 01</h2>
@@ -233,7 +233,7 @@
               <span class="ico">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13"/><path d="M3 12h18"/></svg>
               </span>
-              <span>Cashmere Winter Scarf ($25 value)</span>
+              <span>Allow demo accessories: scarf, thermal pack, beanie or gloves</span>
             </span>
 
 
@@ -246,9 +246,9 @@
           <div class="control-item">
             <div class="control-header">
               <label for="budget-slider">Target Maximum Budget</label>
-              <span id="budget-val" class="control-value">$105.00</span>
+              <span id="budget-val" class="control-value">$130.00</span>
             </div>
-            <input type="range" id="budget-slider" min="1" max="200" step="1" value="105">
+            <input type="range" id="budget-slider" min="1" max="200" step="1" value="130">
             <div class="slider-extremes">
               <span>$1.00</span>
               <span>$200.00</span>
@@ -296,7 +296,7 @@
 
     <!-- STAGE 3 WORKSPACE: Side-by-Side Curated Offers (Left) + PayPal Checkout (Right) -->
     <div class="main-grid stage-panel" id="grid-stage-3" style="display:none;align-items:start;">
-      <!-- Left Column: Live Dialogue + Top 4 Curated Fairdeal Deals -->
+      <!-- Left Column: Live Dialogue + Top 4 Curated FairDeal Deals -->
       <section class="card" style="display:flex;flex-direction:column;gap:0.9rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
           <div style="display:flex;align-items:center;gap:0.6rem;">
@@ -308,10 +308,10 @@
             </button>
             <div>
               <h3 style="color:var(--heading);font-size:1.05rem;margin:0;">
-                Your Fairdeal Offer
+                Your FairDeal Offer
               </h3>
               <p id="offers-subtitle" style="font-size:0.76rem;color:var(--text-muted);font-weight:300;margin:0;">
-                Calculated from your submitted constraints and the demo merchant policy.
+                Calculated from your submitted constraints and each fictional merchant policy.
               </p>
             </div>
           </div>
@@ -364,7 +364,7 @@
         </div>
       </section>
 
-      <!-- Right Column: Selected Fairdeal Agreement Checkout Card (Sticky Side-by-Side) -->
+      <!-- Right Column: Selected FairDeal Agreement Checkout Card (Sticky Side-by-Side) -->
       <section style="position:sticky;top:4.5rem;">
         <div class="agreement-card" id="agreement-card" style="display:flex;margin-top:0;">
           <!-- Mini Product Context Header -->
@@ -373,7 +373,7 @@
             <div style="flex:1;min-width:0;">
               <div style="font-size:0.82rem;font-weight:500;color:#ffffff;">Winter Parka Performance 01</div>
               <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);">
-                Standard Rigid Checkout: <span style="text-decoration:line-through;">$135.00</span> &bull; SKU CH-WINTER-PARKA-01
+                Selected merchant catalog checkout: <span id="selected-standard-total" style="text-decoration:line-through;">$135.00</span> &bull; SKU CH-WINTER-PARKA-01
               </div>
             </div>
           </div>
@@ -396,7 +396,7 @@
 
           <div>
             <div style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.7);margin-bottom:0.45rem;text-transform:uppercase;letter-spacing:0.05em;">
-              Included in your Fairdeal Package:
+              Included in your FairDeal Package:
             </div>
             <ul class="concessions-list" id="concessions-list"></ul>
           </div>
@@ -411,7 +411,7 @@
   </main>
 
   <footer>
-    Fairdeal &bull; AI-assisted negotiation · Demo merchant · PayPal checkout &bull; Powered by PayPal
+    FairDeal &bull; AI-assisted negotiation · Five fictional merchants · PayPal checkout &bull; Powered by PayPal
   </footer>
 
   <script type="module">
@@ -439,5 +439,7 @@
       new NegotiatorApp();
     });
   </script>
+<script type="module" src="/js/product-import.js"></script>
+<script type="module" src="/js/market-info.js"></script>
 </body>
 </html>
