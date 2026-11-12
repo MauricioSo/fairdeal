@@ -96,7 +96,7 @@
     </div>
 
     <!-- Comparison Banner: Selling with FairDeal Protocol vs. Selling Alone -->
-    <div class="card" style="margin-bottom:1.5rem;background:var(--island-bg);color:var(--island-text);border:1px solid rgba(255,255,255,0.08);border-radius:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;">
+    <div class="card merchant-comparison-banner">
       <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
         <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling Alone (Rigid Checkout)</div>
         <div style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:#f87171;margin-top:0.2rem;">Baseline not measured</div>
@@ -192,16 +192,18 @@
           Proposed Policy Diff vs. Active
         </h3>
 
-        <table class="audit-table">
-          <thead>
-            <tr>
-              <th>Commercial Parameter</th>
-              <th>Current Active</th>
-              <th>Proposed by AI</th>
-            </tr>
-          </thead>
-          <tbody id="diff-table-body"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Commercial Parameter</th>
+                <th>Current Active</th>
+                <th>Proposed by AI</th>
+              </tr>
+            </thead>
+            <tbody id="diff-table-body"></tbody>
+          </table>
+        </div>
 
         <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:10px;padding:1rem;margin:1rem 0;">
           <div style="font-size:0.8rem;font-weight:700;color:var(--heading);margin-bottom:0.4rem;text-transform:uppercase;">

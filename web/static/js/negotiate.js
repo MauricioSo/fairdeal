@@ -115,18 +115,22 @@ export class NegotiatorApp {
       this.step2Summary.textContent = `Budget: $${bVal} • Flex: ${fPct}%`;
     }
 
+    const mobileSticky = document.getElementById('mobile-checkout-sticky');
     if (stageNum === 1) {
       this.stage1Container.style.display = 'block';
       this.gridStage2.style.display = 'none';
       this.gridStage3.style.display = 'none';
+      if (mobileSticky) mobileSticky.classList.remove('visible');
     } else if (stageNum === 2) {
       this.stage1Container.style.display = 'none';
       this.gridStage2.style.display = 'grid';
       this.gridStage3.style.display = 'none';
+      if (mobileSticky) mobileSticky.classList.remove('visible');
     } else if (stageNum === 3) {
       this.stage1Container.style.display = 'none';
       this.gridStage2.style.display = 'none';
       this.gridStage3.style.display = 'grid';
+      if (mobileSticky && window.innerWidth <= 960) mobileSticky.classList.add('visible');
       if (this.step3Summary) {
         const count = this.lastMatchResponse && this.lastMatchResponse.top_offers
           ? this.lastMatchResponse.top_offers.length
@@ -135,7 +139,7 @@ export class NegotiatorApp {
       }
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   bindEvents() {
@@ -298,6 +302,15 @@ export class NegotiatorApp {
     });
 
     this.btnCommit.addEventListener('click', () => this.runWinWinMatch());
+
+    const btnMobile = document.getElementById('btn-mobile-goto-checkout');
+    if (btnMobile) {
+      btnMobile.addEventListener('click', () => {
+        if (this.agreementCard) {
+          this.agreementCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
   }
 
   getSelectedAccessories() {
@@ -482,7 +495,7 @@ export class NegotiatorApp {
         </div>
       `;
 
-      div.addEventListener('click', () => this.selectOffer(offer));
+      div.addEventListener('click', () => this.selectOffer(offer, true));
       return div;
     };
 
@@ -494,7 +507,7 @@ export class NegotiatorApp {
     }
   }
 
-  selectOffer(offer) {
+  selectOffer(offer, userInitiated = false) {
  const standard=document.getElementById("selected-standard-total");if(standard)standard.textContent="$"+offer.standard_total;
     document.querySelectorAll('.offer-card').forEach(el => {
       el.classList.toggle('selected', el.dataset.offerId === offer.offer_id);
@@ -504,6 +517,19 @@ export class NegotiatorApp {
     this.dealPriceBig.textContent = `$${offer.final_price}`;
     if (this.selectedBuyerWin) this.selectedBuyerWin.textContent = offer.buyer_win_summary;
     if (this.selectedSellerWin) this.selectedSellerWin.textContent = offer.seller_win_summary;
+
+    const mobileSticky = document.getElementById('mobile-checkout-sticky');
+    const mobileMerchant = document.getElementById('mobile-sticky-merchant');
+    const mobilePrice = document.getElementById('mobile-sticky-price');
+    if (mobileMerchant) mobileMerchant.textContent = offer.merchant_name;
+    if (mobilePrice) mobilePrice.textContent = `$${offer.final_price}`;
+    if (mobileSticky && window.innerWidth <= 960) mobileSticky.classList.add('visible');
+
+    if (userInitiated && window.innerWidth <= 960 && this.agreementCard) {
+      setTimeout(() => {
+        this.agreementCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
 
     if (offer.concessions.installments) {
       this.paylaterCallout.style.display = 'block';
