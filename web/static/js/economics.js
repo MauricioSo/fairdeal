@@ -21,7 +21,8 @@ async function init() {
   if (!response.ok || !catalogResponse.ok) throw new Error('Could not load economic settings. Refresh to retry.');
   let state = await response.json(); const products = (await catalogResponse.json()).products;
   const section = el('section'); section.className = 'economic-panel';
-  const main = document.querySelector('main'); main.prepend(section);
+  const container = document.getElementById('economics-container') || document.querySelector('main');
+  container.replaceChildren(section);
   el('h2', 'Your rules. Every offer checked.', section);
   el('p', 'Authorize what FairDeal can offer. Every pack and delivery option must meet your order and product limits. Buyer budgets remain private.', section);
   const basis = el('details', undefined, section); el('summary', 'What the margin calculation includes', basis);

@@ -1481,6 +1481,9 @@ html, body {
 }
 
 @media (max-width: 768px) {
+  #merchant-email {
+    display: none !important;
+  }
   .merchant-comparison-banner {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
@@ -1513,4 +1516,483 @@ html, body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ==========================================================================
+   9. Modern Merchant Console & AI Strategy Copilot Redesign
+   ========================================================================== */
+
+.merchant-hero-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.merchant-store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.merchant-store-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--island-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-family: var(--font-mono);
+}
+
+.merchant-store-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--heading);
+  line-height: 1.2;
+}
+
+.merchant-store-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.merchant-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.3rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.merchant-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.merchant-tab-btn:hover {
+  color: var(--heading);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.merchant-tab-btn.active {
+  color: var(--island-bg);
+  background: var(--card);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+}
+
+.merchant-tab-btn .tab-badge-copilot {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.merchant-tab-panel {
+  display: none;
+}
+
+.merchant-tab-panel.active {
+  display: block;
+}
+
+/* AI Copilot Workspace */
+.copilot-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .copilot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.copilot-context-sidebar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.context-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inventory-mini-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.inventory-mini-item.deadstock-alert {
+  border-color: rgba(217, 119, 6, 0.4);
+  background: #fffbeb;
+}
+
+.deadstock-pill {
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, 0.3);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.copilot-chat-window {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  height: 650px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.copilot-chat-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.copilot-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.copilot-msg {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 88%;
+}
+
+.copilot-msg.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.copilot-msg.assistant {
+  align-self: flex-start;
+}
+
+.copilot-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.copilot-avatar.ai {
+  background: var(--island-bg);
+  color: var(--accent);
+}
+
+.copilot-avatar.user-avatar {
+  background: var(--green);
+  color: white;
+}
+
+.copilot-bubble {
+  padding: 0.85rem 1.1rem;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.copilot-msg.user .copilot-bubble {
+  background: var(--island-bg);
+  color: var(--island-text);
+  border-bottom-right-radius: 4px;
+}
+
+.copilot-msg.assistant .copilot-bubble {
+  background: var(--bg-subtle);
+  color: var(--heading);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.copilot-proposal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.proposal-param-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.proposal-param-table th,
+.proposal-param-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+}
+
+.proposal-param-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.proposal-param-table td {
+  font-family: var(--font-mono);
+  color: var(--heading);
+}
+
+.btn-activate-copilot {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  transition: transform 0.1s ease;
+  box-shadow: 0 2px 8px var(--accent-soft);
+}
+
+.btn-activate-copilot:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.copilot-chips-bar {
+  padding: 0.6rem 1.25rem;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.copilot-chip {
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 0.76rem;
+  color: var(--text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.copilot-chip:hover {
+  background: var(--card-hover);
+  border-color: var(--heading);
+  color: var(--heading);
+}
+
+.copilot-input-area {
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.copilot-input-field {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-family: var(--font-sans);
+  background: var(--bg-subtle);
+  color: var(--heading);
+  outline: none;
+}
+
+.copilot-input-field:focus {
+  border-color: var(--heading);
+  background: var(--card-hover);
+}
+
+.btn-copilot-send {
+  background: var(--island-bg);
+  color: var(--island-text);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.btn-copilot-send:hover {
+  background: #333c49;
+}
+
+/* Catalog Card & Table Upgrades */
+.catalog-management-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-top: 1rem;
+}
+
+.catalog-table th,
+.catalog-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+}
+
+.catalog-table th {
+  background: var(--bg-subtle);
+  color: var(--heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.btn-action-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.76rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.btn-action-sm:hover {
+  background: var(--bg-subtle);
+  border-color: var(--heading);
+}
+
+.btn-action-sm.danger {
+  color: var(--red);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.btn-action-sm.danger:hover {
+  background: #fef2f2;
+}
+
+/* Economic Panel Polish */
+.economic-panel {
+  padding: 1.5rem !important;
+  margin: 0 0 1.5rem 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  background: var(--card) !important;
+  color: var(--heading) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.economic-panel input,
+.economic-panel select {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 0.65rem 0.85rem !important;
+  background: var(--bg-subtle) !important;
+  color: var(--heading) !important;
+}
+
+.economic-panel button {
+  background: var(--island-bg) !important;
+  color: var(--island-text) !important;
+  border-radius: var(--radius-pill) !important;
+  border: none !important;
+  padding: 0.65rem 1.25rem !important;
+  font-weight: 600 !important;
+}
+
 
