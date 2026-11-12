@@ -55,7 +55,11 @@ class MerchantDashboard {
     this.initCopilot();
 
     window.addEventListener("fairdeal-policy-updated", () => this.loadPolicy());
+    window.addEventListener('fairdeal-catalog-updated', () => this.loadCatalogSummary());
     this.bindEvents();
+    fetch('/api/config').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(c => {
+      if (this.btnResetDemo) this.btnResetDemo.style.display = c.demo_mode ? '' : 'none';
+    }).catch(() => { if (this.btnResetDemo) this.btnResetDemo.style.display = 'none'; });
 
     const logout = document.getElementById('merchant-logout');
     if (logout) {
@@ -243,16 +247,16 @@ class MerchantDashboard {
       if (countEl) countEl.textContent = `${data.products.length} items`;
 
       const listEl = document.getElementById('copilot-inventory-list');
-      if (listEl && data.products.length > 0) {
+      if (listEl) {
         listEl.innerHTML = '';
         data.products.forEach(p => {
           const item = document.createElement('div');
           item.className = 'inventory-mini-item' + (p.is_deadstock ? ' deadstock-alert' : '');
-          const marginPct = p.cost_cents > 0 ? Math.round(((p.list_price_cents - p.cost_cents) / p.list_price_cents) * 100) : 0;
+          const marginPct = p.cost_cents > 0 && p.list_price_cents > 0 ? Math.round(((p.list_price_cents - p.cost_cents) / p.list_price_cents) * 100) : 0;
           item.innerHTML = `
             <div>
               <strong style="color:${p.is_deadstock ? '#b45309' : 'var(--heading)'};">${escapeHtml(p.name)}</strong>
-              <div style="font-size:0.72rem;color:var(--text-muted);">$${(p.list_price_cents / 100).toFixed(2)} list &bull; $${(p.cost_cents / 100).toFixed(2)} cost (${marginPct}% margin)</div>
+              <div style="font-size:0.72rem;color:var(--text-muted);">$${(p.list_price_cents / 100).toFixed(2)} list &bull; $${(p.cost_cents / 100).toFixed(2)} cost (${marginPct}% unit gross margin)</div>
             </div>
             <div style="text-align:right;">
               ${p.is_deadstock ? '<span class="deadstock-pill">Deadstock</span>' : ''}
@@ -271,14 +275,15 @@ class MerchantDashboard {
   // AI Strategy Copilot Execution
   // =========================================================================
   async sendCopilotMessage(userPrompt) {
-    if (!this.copilotMessages) return;
+    if (!this.copilotMessages || this.copilotPending) return;
+    this.copilotPending = true;
 
     // 1. Render User Message Bubble
     this.appendMessage('user', userPrompt);
 
     // 2. Render Loading Bubble
     const loadingId = 'loading-' + Date.now();
-    this.appendMessage('assistant', '<div style="display:flex;align-items:center;gap:0.5rem;color:var(--text-muted);"><em>Calculando estrategia comercial con Go Guardrails y DeepSeek...</em></div>', loadingId);
+    this.appendMessage('assistant', '<div style="display:flex;align-items:center;gap:0.5rem;color:var(--text-muted);"><em>Preparing your policy draft…</em></div>', loadingId);
 
     if (this.copilotSendBtn) this.copilotSendBtn.disabled = true;
 
@@ -296,6 +301,8 @@ class MerchantDashboard {
 
       const data = await res.json();
       this.currentDraft = data.draft;
+      const status = document.getElementById('copilot-source');
+      if (status) status.textContent = data.source === 'llm' ? 'AI-assisted draft' : 'Rule-based draft';
 
       // Remove loading bubble
       const loadingEl = document.getElementById(loadingId);
@@ -308,6 +315,7 @@ class MerchantDashboard {
       if (loadingEl) loadingEl.remove();
       this.appendMessage('assistant', `⚠️ <strong>Error:</strong> ${escapeHtml(err.message || 'No se pudo generar la propuesta.')}`);
     } finally {
+      this.copilotPending = false;
       if (this.copilotSendBtn) this.copilotSendBtn.disabled = false;
     }
   }
@@ -323,7 +331,7 @@ class MerchantDashboard {
 
     msg.innerHTML = `
       ${avatarHtml}
-      <div class="copilot-bubble">${htmlContent}</div>
+      <div class="copilot-bubble">${role === 'user' ? escapeHtml(htmlContent) : htmlContent}</div>
     `;
 
     this.copilotMessages.appendChild(msg);
@@ -339,7 +347,7 @@ class MerchantDashboard {
     if (adjustments && adjustments.length > 0) {
       adjustmentsHtml = `
         <div style="background:rgba(46,125,50,0.08);border:1px solid rgba(46,125,50,0.25);border-radius:8px;padding:0.6rem 0.75rem;font-size:0.78rem;color:var(--green);margin-top:0.5rem;">
-          <strong>✓ Verificación Go Guardrails:</strong>
+          <strong>✓ Policy checks:</strong>
           <ul style="margin:0.25rem 0 0 1rem;">
             ${adjustments.map(a => `<li>${escapeHtml(a)}</li>`).join('')}
           </ul>
@@ -359,7 +367,7 @@ class MerchantDashboard {
         </div>
         <table class="proposal-param-table">
           <tr>
-            <th>Margen Mínimo Garantizado:</th>
+            <th>Minimum margin to enforce:</th>
             <td><strong>${(p.min_margin_pct * 100).toFixed(0)}%</strong> ${cur.min_margin_pct ? `<span style="font-size:0.7rem;color:var(--text-muted);">(actual: ${(cur.min_margin_pct * 100).toFixed(0)}%)</span>` : ''}</td>
           </tr>
           <tr>

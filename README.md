@@ -428,9 +428,18 @@ No incluir `.env` ni bases locales en la imagen. Usar `BASE_URL` HTTPS correcto 
 go test -p 1 ./...
 go vet ./...
 Get-Content extension/product.test.cjs -Raw | node -
+Get-Content web/ui.test.cjs -Raw | node -
 ```
 
 Las pruebas verifican reglas económicas, acuerdos, aislamiento, stock, idempotencia y recuperación con los adaptadores de prueba correspondientes. No todas llaman a PayPal real. Un harness con APIs de Chrome simuladas tampoco demuestra instalación ni compatibilidad universal de la extensión.
+
+El recorrido HTTP reproducible está en `scripts/qa-local.cjs`: comprueba cinco accesos, aislamiento, simulación, catálogo, firmas, stock, captura mock, reintentos y revocación. **Modifica datos de prueba:** ejecutarlo solo contra una instancia desechable en localhost:8080, con cinco cuentas propias de esa instancia, modo mock, heurísticas y reset deshabilitado. No usar datos del servicio desplegado.
+
+```powershell
+$env:FAIRDEAL_QA_CONFIRM_DISPOSABLE = '1'
+$env:FAIRDEAL_QA_ACCOUNTS_FILE = 'C:\ruta-privada\merchant-access-private.json'
+Get-Content scripts/qa-local.cjs -Raw | node -
+```
 
 Recorrido manual recomendado:
 
@@ -478,7 +487,7 @@ Estos puntos son límites actuales o trabajo futuro, **no funcionalidades entreg
 - **Packs acotados:** un principal y un accesorio, sin carritos arbitrarios o cantidades variables.
 - **Referencias no verificadas:** costes, valores y plazos son escenarios configurados.
 - **Kernel:** no hay fuente equivalente ni evidencia externa configurada. Una clave no inicia sesiones facturables ni vuelve verificados los precios. Una integración futura podría aportar evidencia con equivalencia y autorización explícitas.
-- **Estado de IA:** la consola contiene un rótulo fijo de DeepSeek que no prueba disponibilidad o uso efectivo del modelo. El funcionamiento real depende de configuración y fallback.
+- **Estado de IA:** la consola distingue borradores asistidos por IA y por reglas según la respuesta. El modo configurado no garantiza disponibilidad del proveedor y puede haber fallback.
 - **Impacto comercial:** no hay estudio causal de conversión; capturas mock no son ingresos reales.
 - **Operación:** sin live, liquidación multicomercio, devoluciones, disputas, logística ni fiscalidad completa.
 - **Identidad:** faltan recuperación, MFA, verificación de comercios y auditoría independiente para uso real.

@@ -94,6 +94,9 @@ export class NegotiatorApp {
 
   setStage(stageNum) {
     if (!this.stage1Container || !this.gridStage2 || !this.gridStage3) return;
+    this.stage1Container.hidden = stageNum !== 1;
+    this.gridStage2.hidden = stageNum !== 2;
+    this.gridStage3.hidden = stageNum !== 3;
 
     const bVal = parseFloat(this.budgetSlider ? this.budgetSlider.value : 105).toFixed(0);
     const fPct = Math.round(parseFloat(this.flexSlider ? this.flexSlider.value : 0.85) * 100);
@@ -286,7 +289,7 @@ export class NegotiatorApp {
             this.bundleToggle.checked = c.willing_to_bundle;
           }
 
-          this.aiChip.textContent = res.source === 'llm' ? 'AI mandate parser active' : 'Agent Rules Active';
+          this.aiChip.textContent = res.source === 'llm' ? 'AI-assisted preferences' : 'Rule-based preferences';
           this.aiChip.style.display = 'inline-block';
 
           showToast('Product matched! Fine-tune your deal levers in Step 2.');
@@ -332,6 +335,9 @@ export class NegotiatorApp {
   }
 
   async runWinWinMatch() {
+    if (this.matchPending) return;
+    this.matchPending = true;
+    document.getElementById('mobile-checkout-sticky')?.classList.remove('visible');
     this.agreementCard.style.display = 'none';
     this.lastMatchResponse = null;
     const submittedConstraints = JSON.stringify(this.getConstraints());
@@ -377,6 +383,7 @@ export class NegotiatorApp {
     } catch (err) {
       showToast(err.message || 'No Fairdeal deal possible at this budget. Try adjusting slightly.');
     } finally {
+      this.matchPending = false;
       this.btnCommit.disabled = false;
       this.btnCommit.innerHTML = '<span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> <span>Calculate My Offer</span> <span class="ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></span>';
     }
@@ -426,7 +433,7 @@ export class NegotiatorApp {
     if (this.terminalFooter) {
       const summaryReason = log.summary_reason
         ? `<div style="font-size:0.8rem;color:var(--heading);margin-bottom:0.35rem;">
-            <strong>Solver decision:</strong> ${escapeHtml(log.summary_reason)}
+            <strong>Why this offer:</strong> ${escapeHtml(log.summary_reason)}
           </div>`
         : '';
 
@@ -475,7 +482,7 @@ export class NegotiatorApp {
       div.innerHTML = `
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:0.35rem;margin-bottom:0.35rem;">
-            <span class="offer-badge">${escapeHtml(offer.badge)}</span>
+            <span class="offer-badge">Margin checked</span>
             <span style="font-size:0.72rem;font-weight:500;color:var(--text-muted);font-family:var(--font-mono);">Validated Match</span>
           </div>
           <div style="font-size:0.86rem;font-weight:500;color:var(--heading);">${escapeHtml(offer.merchant_name)}</div>
@@ -569,6 +576,7 @@ export class NegotiatorApp {
   }
 
   scheduleConstraintsUpdate() {
+    document.getElementById('mobile-checkout-sticky')?.classList.remove('visible');
     this.lastMatchResponse = null;
     this.agreementCard.style.display = 'none';
     if (this.countdownInterval) clearInterval(this.countdownInterval);

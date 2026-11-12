@@ -89,16 +89,16 @@
         <div>
           <div class="merchant-store-title" id="store-title-display">Merchant Strategy Center</div>
           <div class="merchant-store-sub">
-            Bilateral Clearing Engine &bull; Go Financial Guardrails &bull; DeepSeek AI
+            Store policies, inventory and protected margins
           </div>
         </div>
       </div>
 
       <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <span class="brand-badge" style="background:rgba(46,125,50,0.12);color:var(--green);border-color:rgba(46,125,50,0.3);">
-          ● Store Policy Active
+          Policy and inventory workspace
         </span>
-        <button id="btn-reset-demo" type="button" class="btn-action-sm" style="font-size:0.76rem;padding:0.35rem 0.75rem;">
+        <button id="btn-reset-demo" type="button" style="display:none" class="btn-action-sm">
           Reset Demo State
         </button>
       </div>
@@ -113,7 +113,7 @@
       </button>
       <button type="button" class="merchant-tab-btn" data-tab="metrics">
         <span>📊</span>
-        <span>Performance &amp; Lift</span>
+        <span>Performance</span>
       </button>
       <button type="button" class="merchant-tab-btn" data-tab="catalog">
         <span>📦</span>
@@ -139,27 +139,10 @@
           <div>
             <div class="context-section-title">
               <span>Current Inventory</span>
-              <span id="copilot-items-count" style="font-family:var(--font-mono);font-size:0.75rem;">2 items</span>
+              <span id="copilot-items-count" style="font-family:var(--font-mono);font-size:0.75rem;">Loading…</span>
             </div>
-            <div id="copilot-inventory-list">
-              <div class="inventory-mini-item">
-                <div>
-                  <strong style="color:var(--heading);">Winter Parka Performance 01</strong>
-                  <div style="font-size:0.72rem;color:var(--text-muted);">$120.00 list &bull; $50.00 cost (58% margin)</div>
-                </div>
-                <span style="font-family:var(--font-mono);font-weight:600;">40 units</span>
-              </div>
-              <div class="inventory-mini-item deadstock-alert">
-                <div>
-                  <strong style="color:#b45309;">Cashmere Scarf</strong>
-                  <div style="font-size:0.72rem;color:var(--text-muted);">$25.00 list &bull; $9.00 cost</div>
-                </div>
-                <div style="text-align:right;">
-                  <span class="deadstock-pill">Deadstock</span>
-                  <div style="font-family:var(--font-mono);font-weight:600;font-size:0.76rem;margin-top:2px;">500 units</div>
-                </div>
-              </div>
-            </div>
+            <div id="copilot-inventory-list"><p>Loading your inventory…</p>
+          </div>
           </div>
 
           <div>
@@ -168,20 +151,20 @@
             </div>
             <div style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.78rem;">
               <div style="display:flex;justify-content:space-between;padding:0.4rem 0.6rem;background:var(--bg-subtle);border-radius:8px;">
-                <span style="color:var(--text-muted);">Hard Floor Margin:</span>
+                <span style="color:var(--text-muted);">System Minimum Margin:</span>
                 <strong style="color:var(--red);font-family:var(--font-mono);">15.0% min</strong>
               </div>
               <div style="display:flex;justify-content:space-between;padding:0.4rem 0.6rem;background:var(--bg-subtle);border-radius:8px;">
                 <span style="color:var(--text-muted);">Active Min Margin:</span>
-                <strong style="color:var(--green);font-family:var(--font-mono);" id="copilot-min-margin">20.0%</strong>
+                <strong style="color:var(--green);font-family:var(--font-mono);" id="copilot-min-margin">—</strong>
               </div>
               <div style="display:flex;justify-content:space-between;padding:0.4rem 0.6rem;background:var(--bg-subtle);border-radius:8px;">
                 <span style="color:var(--text-muted);">Max Main Discount:</span>
-                <strong style="color:var(--heading);font-family:var(--font-mono);" id="copilot-max-discount">30.0%</strong>
+                <strong style="color:var(--heading);font-family:var(--font-mono);" id="copilot-max-discount">—</strong>
               </div>
               <div style="display:flex;justify-content:space-between;padding:0.4rem 0.6rem;background:var(--bg-subtle);border-radius:8px;">
                 <span style="color:var(--text-muted);">Active Pack Accessory:</span>
-                <strong style="color:var(--heading);font-family:var(--font-mono);" id="copilot-bundle-sku">SKU-SCARF-09</strong>
+                <strong style="color:var(--heading);font-family:var(--font-mono);" id="copilot-bundle-sku">—</strong>
               </div>
             </div>
           </div>
@@ -191,7 +174,7 @@
               <span>Strategic Insights</span>
             </div>
             <div style="font-size:0.76rem;color:var(--text-muted);line-height:1.45;background:var(--bg-subtle);padding:0.75rem;border-radius:10px;">
-              💡 <em>Consejo de liquidación:</em> Ofrecer la bufanda como accesorio de pack permite capturar compradores con presupuesto ajustado ($100-$110) manteniendo la parka sobre su costo marginal.
+              Compare packs and delivery options in the simulator. Activate a reviewed policy only when its costs and margin limits match your store.
             </div>
           </div>
         </aside>
@@ -204,12 +187,12 @@
               <div>
                 <strong style="font-size:0.95rem;color:var(--heading);">FairDeal Strategy Copilot</strong>
                 <div style="font-size:0.72rem;color:var(--text-muted);">
-                  Motor de negociación &bull; Consultoría de inventario y packs en tiempo real
+                  Review policy proposals before activating them
                 </div>
               </div>
             </div>
-            <span class="brand-badge" style="background:rgba(46,125,50,0.12);color:var(--green);border-color:rgba(46,125,50,0.3);font-size:0.7rem;">
-              ● DeepSeek Flash Online
+            <span class="brand-badge" style="background:rgba(46,125,50,0.12);color:var(--green);border-color:rgba(46,125,50,0.3);font-size:0.7rem;" id="copilot-source">
+              Policy assistant
             </span>
           </div>
 
@@ -221,13 +204,13 @@
               <div class="copilot-bubble">
                 <p><strong>¡Hola! Soy tu Agente Comercial de FairDeal.</strong></p>
                 <p style="margin-top:0.4rem;">
-                  Estoy analizando el inventario de tu tienda. Tienes <strong>500 unidades de Cashmere Scarf en stock muerto</strong> acumulando costos de almacenamiento, mientras que tu <strong>Winter Parka Performance 01</strong> tiene un margen unitario saludable del 58%.
+                  Describe your commercial goal. I can prepare a policy draft using your configured limits; review it before activation.
                 </p>
                 <p style="margin-top:0.4rem;">
                   ¿Qué objetivo comercial tienes hoy? Puedo ayudarte a:
                 </p>
                 <ul style="margin:0.4rem 0 0 1.25rem;font-size:0.84rem;">
-                  <li>Armar <strong>packs estratégicos</strong> de parka + bufanda para liquidar deadstock.</li>
+                  <li>Prepare accessory packs within your configured costs and margins.</li>
                   <li>Ajustar <strong>descuentos agresivos para fin de semana</strong> protegiendo tu margen mínimo.</li>
                   <li>Configurar <strong>flexibilidad de entrega</strong> (flete lento) para reducir costos logísticos.</li>
                 </ul>
@@ -278,7 +261,7 @@
         <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
           <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling Alone (Rigid Checkout)</div>
           <div style="font-size:1.55rem;font-weight:300;font-family:var(--font-mono);color:#f87171;margin-top:0.2rem;">Baseline not measured</div>
-          <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">Demo catalog checkout: $135.00; not an observed abandonment rate</div>
+          <div style="font-size:0.76rem;color:rgba(255,255,255,0.6);margin-top:0.2rem;font-weight:300;">No control-group checkout or abandonment study is available.</div>
         </div>
         <div style="border-right:1px solid rgba(255,255,255,0.08);padding-right:1rem;">
           <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;">Selling with FairDeal Protocol</div>
@@ -325,7 +308,7 @@
         </div>
 
         <div class="metric-card">
-          <span class="metric-title">Solver Latency P50</span>
+          <span class="metric-title">Offer calculation time (median)</span>
           <span class="metric-value" id="metric-latency">0.00 ms</span>
           <span class="metric-sub">Combinatorial clearing time</span>
         </div>
@@ -368,7 +351,7 @@
           <div>
             <h2 style="font-size:1.25rem;color:var(--heading);margin:0;">Live Clearing Audit Trail</h2>
             <p style="font-size:0.84rem;color:var(--text-muted);margin:0;">
-              Immutable log of negotiated contracts, clearing tokens, and PayPal Order capture IDs.
+              Review agreement status, payment references and the cost breakdown behind each offer.
             </p>
           </div>
           <span style="font-size:0.75rem;color:var(--text-muted);">Auto-refreshing every 5s</span>

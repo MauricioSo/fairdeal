@@ -96,6 +96,16 @@ async function init() {
   const run = el('button', 'Compare permitted combinations', sim); run.type = 'submit';
   const results = el('div', undefined, section); results.setAttribute('aria-live', 'polite');
   sim.onsubmit = async event => { event.preventDefault(); run.disabled = true; try { const data = await post('/api/merchant/economics/simulate', { sku: sku.value, price_cents: price.value ? Math.round(Number(price.value) * 100) : 0, policy: read() }); results.replaceChildren(); for (const row of data.rows) { const details = el('details', undefined, results); const e = row.evaluation; el('summary', `${e.approved ? 'APPROVED' : 'BLOCKED'} · ${amount(row.price_cents)} · ${row.shipping === 'EXPRESS' ? 'Express 1–2 days' : 'Ground 5–7 days'} · ${row.bundle_sku ? 'With ' + row.bundle_sku : 'Single item'} · margin ${(e.breakdown.margin_bps / 100).toFixed(2)}%`, details); if (e.reasons.length) el('p', e.reasons.map(reason => labels[reason] || reason).join('; '), details); breakdown(details, e.breakdown); } } catch (e) { results.textContent = e.message; } finally { run.disabled = false; } };
+  window.addEventListener('fairdeal-catalog-updated', async () => {
+    try {
+      const [r, c] = await Promise.all([merchantFetch('/api/merchant/economics'), merchantFetch('/api/merchant/catalog')]);
+      if (!r.ok || !c.ok) throw new Error('Could not reload catalog. Refresh before editing rules.');
+      state = await r.json();
+      products.splice(0, products.length, ...(await c.json()).products);
+      fill(); results.replaceChildren(); draft = null; activate.hidden = true;
+      status.textContent = 'Catalog updated. Active rules reloaded; review a new draft before activation.';
+    } catch (error) { draft = null; activate.hidden = true; status.textContent = error.message; }
+  });
   window.addEventListener('fairdeal-ai-policy-updated', async () => { const r = await merchantFetch('/api/merchant/economics'); if (r.ok) { state = await r.json(); fill(); draft = null; activate.hidden = true; status.textContent = 'Active policy reloaded. Unsaved configuration was cleared.'; } });
   window.addEventListener('fairdeal-show-economics', async event => { const target = event.detail.target; try { const r = await merchantFetch(`/api/merchant/agreements/${encodeURIComponent(event.detail.id)}/economics`); if (!r.ok) throw new Error('No snapshot for this historical agreement.'); const s = await r.json(); target.replaceChildren(); el('p', `Policy #${s.policy_id} · frozen costs at checkout · ${s.evaluation.approved ? 'Approved by deterministic engine' : 'Blocked'}`, target); breakdown(target, s.evaluation.breakdown); } catch (e) { target.textContent = e.message; } });
 }

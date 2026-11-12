@@ -21,7 +21,7 @@
           </span>
           <span class="shopper-label">Demo shopper</span>
           <span class="dot-fairdeal"></span>
-          <span><span id="buyer-total-benefit-pill">$178</span> Saved</span>
+          <span><span id="buyer-total-benefit-pill">—</span> Demo catalog savings</span>
         </div>
         <a href="/merchant">
           <span>Seller Console</span>
@@ -73,7 +73,7 @@
               Describe your desired item, budget, and delivery timing. The AI assistant matches the demo catalog product and proposes deal preferences for you to review.
             </p>
           </div>
-          <span class="llm-badge" id="ai-chip">AI parser · source shown after request</span>
+          <span class="llm-badge" id="ai-chip">Shopping assistant</span>
         </div>
 
         <div>
@@ -139,7 +139,7 @@
     </div>
 
     <!-- STAGE 2 WORKSPACE (Discovered Product Left + Custom Levers Right) -->
-    <div class="main-grid stage-panel" id="grid-stage-2" style="display:none;align-items:start;">
+    <div class="main-grid stage-panel" id="grid-stage-2" hidden style="display:none;align-items:start;">
       <!-- Left Column: Discovered Product & Standard Baseline -->
       <section class="card" id="product-card-section" aria-labelledby="product-heading">
         <div class="product-image-container">
@@ -147,7 +147,7 @@
         </div>
 
         <div class="product-meta-row">
-          <span class="product-eyebrow">Alpine Technical Series &bull; SKU CH-WINTER-PARKA-01</span>
+          <span class="product-eyebrow">Winter collection</span>
           <span class="product-stock-pill">
             <span class="dot"></span>
             <span>Five fictional merchants · seeded catalog</span>
@@ -295,7 +295,7 @@
     </div>
 
     <!-- STAGE 3 WORKSPACE: Side-by-Side Curated Offers (Left) + PayPal Checkout (Right) -->
-    <div class="main-grid stage-panel" id="grid-stage-3" style="display:none;align-items:start;">
+    <div class="main-grid stage-panel" id="grid-stage-3" hidden style="display:none;align-items:start;">
       <!-- Left Column: Live Dialogue + Top 4 Curated FairDeal Deals -->
       <section class="card" style="display:flex;flex-direction:column;gap:0.9rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
@@ -366,7 +366,7 @@
 
       <!-- Right Column: Selected FairDeal Agreement Checkout Card (Sticky Side-by-Side) -->
       <section style="position:sticky;top:4.5rem;">
-        <div class="agreement-card" id="agreement-card" style="display:flex;margin-top:0;">
+        <div class="agreement-card" id="agreement-card" style="display:none;margin-top:0;">
           <!-- Mini Product Context Header -->
           <div class="mini-product-summary">
             <img src="/img/parka.jpg" alt="Winter Parka Performance 01">
@@ -381,9 +381,9 @@
           <div class="agreement-header">
             <div>
               <div id="selected-merchant-label" style="font-size:0.74rem;color:var(--accent);font-family:var(--font-mono);font-weight:500;letter-spacing:0.06em;">
-                FAIRDEAL AGREEMENT READY &bull; ALPINE GEAR CO.
+                Select an offer
               </div>
-              <div id="deal-price-big" class="deal-price-big">$94.00</div>
+              <div id="deal-price-big" class="deal-price-big">—</div>
             </div>
             <div id="countdown-badge" class="countdown-badge">
               Offer expires in 05:00
@@ -413,8 +413,8 @@
   <!-- Mobile Floating Sticky Checkout Bar -->
   <div id="mobile-checkout-sticky" class="mobile-checkout-sticky">
     <div class="mobile-sticky-info">
-      <span class="mobile-sticky-label" id="mobile-sticky-merchant">Alpine Gear Co.</span>
-      <span class="mobile-sticky-price" id="mobile-sticky-price">$94.00</span>
+      <span class="mobile-sticky-label" id="mobile-sticky-merchant">Select an offer</span>
+      <span class="mobile-sticky-price" id="mobile-sticky-price">—</span>
     </div>
     <button type="button" id="btn-mobile-goto-checkout" class="btn-mobile-checkout">
       <span>Pay with PayPal</span>
@@ -445,7 +445,7 @@
       try {
         const sum = await fetchBuyerSummary();
         const pill = document.getElementById('buyer-total-benefit-pill');
-        if (pill) pill.textContent = `$${sum.total_benefit}`;
+        if (pill) pill.textContent = '$' + sum.total_cash_saved;
       } catch (err) {
         console.warn('Buyer summary fallback', err);
       }

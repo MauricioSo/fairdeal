@@ -191,6 +191,7 @@ if (sessionResponse.ok) {
           });
           statusMsg.textContent = res.ok ? 'Product archived successfully.' : 'Could not archive: check active reservations.';
           await loadCatalog();
+          window.dispatchEvent(new Event('fairdeal-catalog-updated'));
         };
 
         tbody.appendChild(tr);
@@ -228,6 +229,7 @@ if (sessionResponse.ok) {
         statusMsg.textContent = 'Product saved successfully! Outstanding offers updated.';
         drawer.style.display = 'none';
         await loadCatalog();
+        window.dispatchEvent(new Event('fairdeal-catalog-updated'));
       } else {
         statusMsg.textContent = 'Could not save product: please check values.';
       }
