@@ -2,6 +2,10 @@
 
 AI-assisted bilateral commerce with five fictional merchants, private buyer budgets and PayPal Sandbox checkout. This is a hackathon prototype with seeded products, inventory, shipping assumptions and estimated fees.
 
+## Source of truth
+
+The canonical local checkout is `Documents/fairdeal`, connected to this GitHub repository with `main` tracking `origin/main`. All agents should work from that checkout and read [AGENTS.md](AGENTS.md) before making changes. Do not publish from the former `Documents/Codex/FairDeal/public-reviewed` staging copy. Local credentials, databases and internal documents remain ignored and are not part of the shared source.
+
 ## What works
 
 - Five persisted merchant scenarios: Alpine, Nordic, Glacier, Sierra and Polaris. Each uses a separate SQLite database, catalog, policies, login sessions and sales history.

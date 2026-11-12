@@ -22,3 +22,9 @@ outputs/
 
 *private*.json
 private/
+# Private local design/specification material; keep out of the public repository
+/web/static/design-preview.html
+/TECHNICAL_SPECIFICATION*
+*.backup.db
+*.backup.db-wal
+*.backup.db-shm
