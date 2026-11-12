@@ -1621,6 +1621,10 @@ html, body {
 
 .merchant-tab-panel {
   display: none;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .merchant-tab-panel.active {
@@ -1633,11 +1637,93 @@ html, body {
   grid-template-columns: 320px 1fr;
   gap: 1.25rem;
   align-items: start;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
   .copilot-grid {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .copilot-chat-window {
+    order: 1 !important;
+    height: 540px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .copilot-context-sidebar {
+    order: 2 !important;
+    margin-top: 1rem !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-nav .user-pill-fairdeal {
+    display: none !important;
+  }
+  .header-nav #merchant-email {
+    display: none !important;
+  }
+  .merchant-hero-bar {
+    padding: 1rem !important;
+    border-radius: 14px !important;
+  }
+  .merchant-store-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.95rem !important;
+  }
+  .merchant-store-title {
+    font-size: 1.05rem !important;
+  }
+  .copilot-chat-window {
+    height: 500px !important;
+    border-radius: 14px !important;
+  }
+  .copilot-msg {
+    max-width: 96% !important;
+  }
+  .copilot-bubble {
+    padding: 0.7rem 0.85rem !important;
+    font-size: 0.83rem !important;
+  }
+  .copilot-chips-bar {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.35rem !important;
+  }
+  .copilot-chip {
+    padding: 0.3rem 0.65rem !important;
+    font-size: 0.73rem !important;
+  }
+  .copilot-input-area {
+    padding: 0.5rem 0.75rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  .copilot-input-field {
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.84rem !important;
+  }
+  .btn-copilot-send {
+    padding: 0.6rem 0.95rem !important;
+    font-size: 0.82rem !important;
+  }
+  .catalog-management-card {
+    padding: 1rem !important;
+    border-radius: 14px !important;
+  }
+  .catalog-table th, .catalog-table td {
+    padding: 0.55rem 0.65rem !important;
+    font-size: 0.8rem !important;
   }
 }
 
@@ -1700,6 +1786,10 @@ html, body {
   height: 650px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .copilot-chat-header {
@@ -1710,6 +1800,9 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .copilot-messages-container {
@@ -1719,12 +1812,17 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .copilot-msg {
   display: flex;
   gap: 0.75rem;
   max-width: 88%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .copilot-msg.user {
@@ -1763,6 +1861,11 @@ html, body {
   border-radius: 14px;
   font-size: 0.88rem;
   line-height: 1.45;
+  min-width: 0;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
 }
 
 .copilot-msg.user .copilot-bubble {
@@ -1787,12 +1890,17 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
 }
 
 .proposal-param-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
+  min-width: 0;
 }
 
 .proposal-param-table th,
@@ -1827,6 +1935,7 @@ html, body {
   gap: 0.45rem;
   transition: transform 0.1s ease;
   box-shadow: 0 2px 8px var(--accent-soft);
+  touch-action: manipulation;
 }
 
 .btn-activate-copilot:hover {
@@ -1843,6 +1952,10 @@ html, body {
   gap: 0.5rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .copilot-chip {
@@ -1856,6 +1969,8 @@ html, body {
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: var(--font-sans);
+  touch-action: manipulation;
+  flex-shrink: 0;
 }
 
 .copilot-chip:hover {
@@ -1871,10 +1986,15 @@ html, body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .copilot-input-field {
   flex: 1;
+  min-width: 0;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1883,6 +2003,7 @@ html, body {
   background: var(--bg-subtle);
   color: var(--heading);
   outline: none;
+  box-sizing: border-box;
 }
 
 .copilot-input-field:focus {
